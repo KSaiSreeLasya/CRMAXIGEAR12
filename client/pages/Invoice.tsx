@@ -1,6 +1,6 @@
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Printer, Download } from "lucide-react";
+import { ArrowLeft, Download } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import InvoiceContent from "@/components/InvoiceContent";
@@ -46,10 +46,6 @@ export default function Invoice() {
       </Layout>
     );
   }
-
-  const handlePrint = () => {
-    window.print();
-  };
 
   const handleDownloadPDF = () => {
     const element = document.getElementById("invoice-container");
@@ -99,6 +95,8 @@ export default function Invoice() {
               padding: 3rem;
               width: 100%;
               font-size: 14px;
+              page-break-after: avoid;
+              break-after: avoid;
             }
             .grid {
               display: grid;
@@ -199,6 +197,8 @@ export default function Invoice() {
               border-collapse: collapse;
               border: 2px solid #666;
               margin-bottom: 2rem;
+              page-break-inside: avoid;
+              break-inside: avoid;
             }
             th {
               background-color: #d4edda;
@@ -284,6 +284,14 @@ export default function Invoice() {
             .font-mono {
               font-family: 'Courier New', monospace;
             }
+            tr {
+              page-break-inside: avoid;
+              break-inside: avoid;
+            }
+            #invoice-container > div {
+              page-break-inside: avoid;
+              break-inside: avoid;
+            }
           </style>
         </head>
         <body>
@@ -317,19 +325,12 @@ export default function Invoice() {
             </Button>
             <div className="flex gap-4">
               <Button
-                onClick={handlePrint}
-                className="bg-primary hover:bg-primary/90 text-primary-foreground gap-2"
-              >
-                <Printer className="w-4 h-4" />
-                Print Invoice
-              </Button>
-              <Button
                 onClick={handleDownloadPDF}
                 variant="outline"
                 className="gap-2"
               >
                 <Download className="w-4 h-4" />
-                Download PDF
+                Download Invoice
               </Button>
             </div>
           </div>
@@ -381,6 +382,20 @@ export default function Invoice() {
             box-shadow: none;
             margin: 0;
             padding: 0;
+            page-break-after: avoid;
+            break-after: avoid;
+          }
+          table {
+            page-break-inside: avoid;
+            break-inside: avoid;
+          }
+          tr {
+            page-break-inside: avoid;
+            break-inside: avoid;
+          }
+          #invoice-container > div {
+            page-break-inside: avoid;
+            break-inside: avoid;
           }
         }
       `}</style>
