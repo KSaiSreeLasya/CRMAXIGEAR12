@@ -72,6 +72,45 @@ export default function Invoice() {
     window.print();
   };
 
+  const handleDownloadPDF = () => {
+    const element = document.getElementById("invoice-container");
+    if (!element) return;
+
+    // Use browser's print to PDF functionality as a workaround
+    const printWindow = window.open("", "", "height=800,width=1000");
+    if (!printWindow) return;
+
+    printWindow.document.write("<html><head><title>Invoice</title>");
+    printWindow.document.write("<style>");
+    printWindow.document.write(`
+      body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
+      * { box-sizing: border-box; }
+      table { width: 100%; border-collapse: collapse; }
+      td, th { padding: 10px; border: 1px solid #ccc; }
+      th { background-color: #f0f0f0; font-weight: bold; }
+      .header { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #ccc; }
+      .header-left { display: flex; gap: 20px; align-items: flex-start; }
+      .header-left img { width: 60px; height: 60px; object-fit: contain; }
+      .company-name { font-size: 20px; font-weight: bold; }
+      .invoice-title { text-align: center; font-size: 28px; font-weight: bold; color: #2d7a3e; }
+      .invoice-details { text-align: right; }
+      .section { margin-bottom: 20px; }
+      .tax-summary { float: right; width: 50%; }
+      .tax-row { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #ccc; }
+      .tax-total { display: flex; justify-content: space-between; padding: 10px 0; font-weight: bold; border-top: 2px solid #ccc; }
+      .bank-details { margin-top: 30px; padding-top: 20px; border-top: 1px solid #ccc; }
+      .footer { text-align: center; margin-top: 30px; font-size: 12px; color: #666; }
+    `);
+    printWindow.document.write("</style></head><body>");
+    printWindow.document.write(element.innerHTML);
+    printWindow.document.write("</body></html>");
+    printWindow.document.close();
+
+    setTimeout(() => {
+      printWindow.print();
+    }, 250);
+  };
+
   return (
     <Layout>
       <div className="container mx-auto px-4 py-8">
@@ -93,7 +132,11 @@ export default function Invoice() {
               <Printer className="w-4 h-4" />
               Print Invoice
             </Button>
-            <Button variant="outline" className="gap-2">
+            <Button
+              onClick={handleDownloadPDF}
+              variant="outline"
+              className="gap-2"
+            >
               <Download className="w-4 h-4" />
               Download PDF
             </Button>
@@ -101,18 +144,21 @@ export default function Invoice() {
         </div>
 
         {/* Invoice Container */}
-        <div className="bg-white text-black p-8 md:p-12 max-w-4xl mx-auto rounded-lg border border-gray-300 print:border-0 print:rounded-none">
+        <div
+          id="invoice-container"
+          className="bg-white text-black p-8 md:p-12 max-w-4xl mx-auto rounded-lg border border-gray-300 print:border-0 print:rounded-none"
+        >
           {/* Header Section */}
           <div className="grid grid-cols-3 gap-8 mb-8 pb-8 border-b border-gray-300">
             {/* Company Info with Logo */}
             <div>
-              <div className="flex items-start gap-4 mb-4">
+              <div className="flex items-center gap-4 mb-4">
                 <img
                   src="https://cdn.builder.io/api/v1/image/assets%2F59bf3e928fc9473a97d5e87470c824bb%2F8b737424d5b445559a46780e8d2b4449?format=webp&width=800&height=1200"
                   alt="AXIGEAR Logo"
-                  className="w-16 h-16 object-contain"
+                  className="w-20 h-20 object-contain flex-shrink-0"
                 />
-                <h1 className="text-2xl font-bold">{COMPANY_INFO.name}</h1>
+                <h1 className="text-2xl font-bold leading-tight">{COMPANY_INFO.name}</h1>
               </div>
               <div className="text-sm space-y-1 text-gray-700">
                 <p>{COMPANY_INFO.address}</p>
