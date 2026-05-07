@@ -3,13 +3,15 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/lib/supabase";
 
+const DEFAULT_EMAIL = "admin@axigear.in";
+const DEFAULT_PASSWORD = "Axigear@2026";
+
 export default function Login() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState(DEFAULT_EMAIL);
+  const [password, setPassword] = useState(DEFAULT_PASSWORD);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [isSignUp, setIsSignUp] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,25 +23,14 @@ export default function Login() {
         throw new Error("Supabase not initialized");
       }
 
-      if (isSignUp) {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-        });
-        if (error) throw error;
-        setError("Check your email to confirm signup");
-        setEmail("");
-        setPassword("");
-      } else {
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-        if (error) throw error;
-        if (data.session) {
-          localStorage.setItem("auth_token", data.session.access_token);
-          navigate("/projects");
-        }
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      if (error) throw error;
+      if (data.session) {
+        localStorage.setItem("auth_token", data.session.access_token);
+        navigate("/projects");
       }
     } catch (err: any) {
       setError(err.message || "An error occurred");
@@ -54,14 +45,14 @@ export default function Login() {
         <div className="bg-background rounded-lg border border-border shadow-lg p-8">
           {/* Logo and Title */}
           <div className="text-center mb-8">
-            <img 
-              src="https://cdn.builder.io/api/v1/image/assets%2Fe8b0f34e11e04fd5ad5fe77ca26e5a4c%2F898bd506bd194b53a5eda248601c50c7?format=webp&width=64&height=64" 
-              alt="AXIGEAR" 
+            <img
+              src="https://cdn.builder.io/api/v1/image/assets%2Fe8b0f34e11e04fd5ad5fe77ca26e5a4c%2F898bd506bd194b53a5eda248601c50c7?format=webp&width=64&height=64"
+              alt="AXIGEAR"
               className="w-12 h-12 mx-auto mb-3"
             />
             <h1 className="text-2xl font-bold">AXIGEAR CRM</h1>
             <p className="text-muted-foreground text-sm mt-2">
-              {isSignUp ? "Create your account" : "Sign in to your account"}
+              Sign in to your account
             </p>
           </div>
 
@@ -108,26 +99,9 @@ export default function Login() {
               disabled={loading}
               className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
             >
-              {loading ? "Loading..." : isSignUp ? "Sign Up" : "Sign In"}
+              {loading ? "Loading..." : "Sign In"}
             </Button>
           </form>
-
-          {/* Toggle between Sign In and Sign Up */}
-          <div className="mt-6 text-center">
-            <p className="text-sm text-muted-foreground">
-              {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
-              <button
-                type="button"
-                onClick={() => {
-                  setIsSignUp(!isSignUp);
-                  setError("");
-                }}
-                className="text-primary font-medium hover:underline"
-              >
-                {isSignUp ? "Sign In" : "Sign Up"}
-              </button>
-            </p>
-          </div>
         </div>
       </div>
     </div>
