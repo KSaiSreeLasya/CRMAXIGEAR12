@@ -12,6 +12,7 @@ export interface Project {
   location: string;
   productDescription: string;
   hsnNo: string;
+  chassisNo: string;
   amount: number;
   createdAt: string;
 }
@@ -117,6 +118,9 @@ export default function Projects() {
                       HSN No.
                     </th>
                     <th className="px-6 py-4 text-left font-semibold text-foreground">
+                      Chassis No.
+                    </th>
+                    <th className="px-6 py-4 text-left font-semibold text-foreground">
                       Amount
                     </th>
                     <th className="px-6 py-4 text-left font-semibold text-foreground">
@@ -141,6 +145,9 @@ export default function Projects() {
                       </td>
                       <td className="px-6 py-4 font-mono text-sm">
                         {project.hsnNo}
+                      </td>
+                      <td className="px-6 py-4 font-mono text-sm">
+                        {project.chassisNo}
                       </td>
                       <td className="px-6 py-4 font-semibold text-success">
                         {formatAmount(project.amount)}
