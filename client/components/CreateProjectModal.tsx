@@ -6,7 +6,7 @@ import type { Project } from "@/pages/Projects";
 interface CreateProjectModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onCreateProject: (project: Omit<Project, "id" | "createdAt">) => void;
+  onCreateProject: (project: Omit<Project, "id" | "createdAt">) => Promise<void>;
 }
 
 export default function CreateProjectModal({
@@ -74,14 +74,14 @@ export default function CreateProjectModal({
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!validateForm()) {
       return;
     }
 
-    onCreateProject({
+    await onCreateProject({
       customerName: formData.customerName,
       contactNo: formData.contactNo,
       location: formData.location,
