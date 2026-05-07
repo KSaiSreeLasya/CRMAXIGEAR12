@@ -1,10 +1,17 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu } from "lucide-react";
+import { Menu, LogOut } from "lucide-react";
 import { useState } from "react";
+import { logout } from "@/lib/auth";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -36,6 +43,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             >
               Projects
             </Link>
+            <button
+              onClick={handleLogout}
+              className="inline-flex items-center gap-2 text-sm font-medium transition-colors hover:text-destructive"
+            >
+              <LogOut className="w-4 h-4" />
+              Logout
+            </button>
           </nav>
         </div>
 
@@ -50,6 +64,16 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               >
                 Projects
               </Link>
+              <button
+                onClick={() => {
+                  handleLogout();
+                  setMobileMenuOpen(false);
+                }}
+                className="inline-flex items-center gap-2 text-sm font-medium transition-colors hover:text-destructive text-left"
+              >
+                <LogOut className="w-4 h-4" />
+                Logout
+              </button>
             </nav>
           </div>
         )}
