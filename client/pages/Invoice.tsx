@@ -15,7 +15,9 @@ export default function Invoice() {
   const [gstType, setGstType] = useState<"igst" | "cgst-sgst">("igst");
 
   useEffect(() => {
-    loadProject();
+    if (projectId) {
+      loadProject();
+    }
   }, [projectId]);
 
   const loadProject = async () => {
