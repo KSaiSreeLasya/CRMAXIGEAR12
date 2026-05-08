@@ -19,17 +19,19 @@ export default function Login() {
     setLoading(true);
 
     try {
-      if (!supabase) {
-        throw new Error("Supabase not initialized");
-      }
-
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-      if (error) throw error;
-      if (data.session) {
-        localStorage.setItem("auth_token", data.session.access_token);
+      if (supabase) {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+        if (error) throw error;
+        if (data.session) {
+          localStorage.setItem("auth_token", data.session.access_token);
+          navigate("/projects");
+        }
+      } else {
+        // Offline mode: allow login without Supabase
+        localStorage.setItem("auth_token", "offline-" + Date.now());
         navigate("/projects");
       }
     } catch (err: any) {
