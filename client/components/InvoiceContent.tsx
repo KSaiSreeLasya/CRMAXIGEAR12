@@ -45,28 +45,28 @@ export default function InvoiceContent({
   }
 
   const containerClass = forPrint
-    ? "bg-white text-black p-12 w-full"
+    ? "bg-white text-black p-12 w-full print:p-12"
     : "bg-white text-black p-8 md:p-12 max-w-5xl mx-auto rounded-lg border-2 border-gray-300 shadow-lg";
 
   return (
     <div id="invoice-container" className={containerClass}>
       {/* Header Section */}
-      <div className="grid grid-cols-3 gap-8 mb-8 pb-8 border-b-2 border-gray-400">
+      <div className="grid grid-cols-3 gap-6 mb-6 pb-6 border-b-2 border-gray-400">
         {/* Company Info with Logo */}
         <div>
-          <div className="flex items-center gap-4 mb-6">
+          <div className="flex items-center gap-3 mb-3">
             <img
               src="https://cdn.builder.io/api/v1/image/assets%2F59bf3e928fc9473a97d5e87470c824bb%2F8b737424d5b445559a46780e8d2b4449?format=webp&width=800&height=1200"
               alt="AXIGEAR Logo"
-              className="w-20 h-20 object-contain flex-shrink-0"
+              className="w-16 h-16 object-contain flex-shrink-0"
             />
-            <h1 className="text-2xl font-bold leading-tight">
+            <h1 className="text-lg font-bold leading-tight">
               {COMPANY_INFO.name}
             </h1>
           </div>
-          <div className="text-sm space-y-1 text-gray-700">
-            <p className="font-medium">{COMPANY_INFO.address}</p>
-            <p className="font-medium">{COMPANY_INFO.city}</p>
+          <div className="text-xs space-y-0.5 text-gray-700">
+            <p className="font-medium text-xs">{COMPANY_INFO.address}</p>
+            <p className="font-medium text-xs">{COMPANY_INFO.city}</p>
             <p className="mt-3">
               <span className="font-bold">GSTIN/UIN:</span> {COMPANY_INFO.gstin}
             </p>
@@ -81,7 +81,7 @@ export default function InvoiceContent({
 
         {/* Invoice Title */}
         <div className="text-center">
-          <h2 className="text-4xl font-bold text-green-700 mb-3">TAX INVOICE</h2>
+          <h2 className="text-3xl font-bold text-green-700 mb-2">TAX INVOICE</h2>
           <p className="text-xs text-gray-600 font-semibold leading-snug">
             Issued u/s 31(1) of CGST Act, 2017 r.w.t Rule 46 of CGST Rules, 2017
           </p>
@@ -114,7 +114,7 @@ export default function InvoiceContent({
       </div>
 
       {/* Bill To Section */}
-      <div className="mb-8 p-4 bg-gray-50 border-2 border-gray-300 rounded">
+      <div className="mb-6 p-3 bg-gray-50 border-2 border-gray-300 rounded">
         <h3 className="font-bold text-sm mb-3 text-gray-800">Bill To:</h3>
         <div className="text-sm space-y-2">
           <p>
@@ -133,35 +133,35 @@ export default function InvoiceContent({
       </div>
 
       {/* Items Table */}
-      <table className="w-full mb-8 border-2 border-gray-400">
+      <table className="w-full mb-6 border-2 border-gray-400">
         <thead>
           <tr className="bg-green-100">
-            <th className="border border-gray-400 px-4 py-3 text-left text-sm font-bold text-gray-800 w-12">
+            <th className="border border-gray-400 px-3 py-2 text-left text-xs font-bold text-gray-800 w-12">
               #
             </th>
-            <th className="border border-gray-400 px-4 py-3 text-left text-sm font-bold text-gray-800">
+            <th className="border border-gray-400 px-3 py-2 text-left text-xs font-bold text-gray-800">
               Product Description
             </th>
-            <th className="border border-gray-400 px-4 py-3 text-left text-sm font-bold text-gray-800 w-20">
+            <th className="border border-gray-400 px-3 py-2 text-left text-xs font-bold text-gray-800 w-20">
               HSN
             </th>
-            <th className="border border-gray-400 px-4 py-3 text-right text-sm font-bold text-gray-800 w-32">
+            <th className="border border-gray-400 px-3 py-2 text-right text-xs font-bold text-gray-800 w-32">
               Amount (INR)
             </th>
           </tr>
         </thead>
         <tbody>
           <tr className="hover:bg-gray-50">
-            <td className="border border-gray-400 px-4 py-4 text-sm text-gray-800">
+            <td className="border border-gray-400 px-3 py-2 text-xs text-gray-800">
               1
             </td>
-            <td className="border border-gray-400 px-4 py-4 text-sm text-gray-800">
+            <td className="border border-gray-400 px-3 py-2 text-xs text-gray-800">
               {project.productDescription}
             </td>
-            <td className="border border-gray-400 px-4 py-4 text-sm font-mono text-gray-800">
+            <td className="border border-gray-400 px-3 py-2 text-xs font-mono text-gray-800">
               {project.hsnNo}
             </td>
-            <td className="border border-gray-400 px-4 py-4 text-sm text-right font-semibold text-gray-800">
+            <td className="border border-gray-400 px-3 py-2 text-xs text-right font-semibold text-gray-800">
               {baseAmount.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
             </td>
           </tr>
@@ -169,7 +169,7 @@ export default function InvoiceContent({
       </table>
 
       {/* Tax Summary */}
-      <div className="mb-8 grid grid-cols-2 gap-8">
+      <div className="mb-4 grid grid-cols-2 gap-6">
         <div></div>
         <div className="space-y-3">
           <div className="flex justify-between text-sm border-b-2 border-gray-300 pb-2">
@@ -226,7 +226,7 @@ export default function InvoiceContent({
       </div>
 
       {/* Amount in Words */}
-      <div className="mb-8 p-4 bg-green-50 border-2 border-green-300 rounded">
+      <div className="mb-4 p-3 bg-green-50 border-2 border-green-300 rounded">
         <p className="text-sm text-gray-800">
           <span className="font-bold">Amount in words:</span>{" "}
           {formatAmountInWords(Math.round(totalAmount))}
@@ -234,7 +234,7 @@ export default function InvoiceContent({
       </div>
 
       {/* Bank Details */}
-      <div className="mb-8 pb-8 border-b-2 border-gray-300">
+      <div className="mb-4 pb-4 border-b-2 border-gray-300">
         <h3 className="font-bold mb-4 text-sm text-gray-800">
           Bank Details - Beneficiary Bank Details
         </h3>
@@ -259,14 +259,14 @@ export default function InvoiceContent({
       </div>
 
       {/* Footer */}
-      <div className="text-center text-xs text-gray-600 space-y-3">
-        <p className="italic text-gray-700">
+      <div className="text-center text-xs text-gray-600 space-y-1">
+        <p className="italic text-gray-700 text-xs">
           *This is a computer generated invoice and doesn't need a signature*
         </p>
-        <p className="pt-3 font-bold text-gray-800 text-sm">
+        <p className="font-bold text-gray-800 text-xs">
           {COMPANY_INFO.name}
         </p>
-        <p className="text-xs text-gray-600 leading-relaxed">
+        <p className="text-xs text-gray-600 leading-tight">
           Plot no.102, 103, Sri Krishna Vihar, Temple Lane, Mythri Nagar Phase-2,
           Mathrusri Nagar, Madinaguda, Serilingampally, K.V.Rangareddy- 500049,
           Telangana, India

@@ -1,6 +1,6 @@
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Download, Printer, Edit2 } from "lucide-react";
+import { ArrowLeft, Download, Edit2 } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import InvoiceContent from "@/components/InvoiceContent";
@@ -22,29 +22,32 @@ export default function Invoice() {
 
   const loadProject = async () => {
     try {
-      // Try Supabase first
       if (supabase && projectId) {
-        const { data, error } = await supabase
-          .from('projects')
-          .select('*')
-          .eq('id', projectId)
-          .single();
+        try {
+          const { data, error } = await supabase
+            .from('projects')
+            .select('*')
+            .eq('id', projectId)
+            .single();
 
-        if (!error && data) {
-          const project: Project = {
-            id: data.id,
-            customerName: data.customer_name,
-            contactNo: data.contact_no,
-            location: data.location,
-            productDescription: data.product_description,
-            hsnNo: data.hsn_no,
-            chassisNo: data.chassis_no,
-            amount: data.amount,
-            createdAt: new Date(data.created_at).toLocaleDateString(),
-          };
-          setProject(project);
-          setInvoiceNo(`AAV/2026-27/001`);
-          return;
+          if (!error && data) {
+            const project: Project = {
+              id: data.id,
+              customerName: data.customer_name,
+              contactNo: data.contact_no,
+              location: data.location,
+              productDescription: data.product_description,
+              hsnNo: data.hsn_no,
+              chassisNo: data.chassis_no,
+              amount: data.amount,
+              createdAt: new Date(data.created_at).toLocaleDateString(),
+            };
+            setProject(project);
+            setInvoiceNo(`AAV/2026-27/001`);
+            return;
+          }
+        } catch (supabaseError) {
+          console.error("Error loading project from Supabase:", supabaseError);
         }
       }
 
@@ -59,21 +62,7 @@ export default function Invoice() {
         }
       }
     } catch (error) {
-      console.error("Error loading project:", error);
-      // Fallback to localStorage
-      const savedProjects = localStorage.getItem("crm_projects");
-      if (savedProjects) {
-        try {
-          const projects = JSON.parse(savedProjects) as Project[];
-          const foundProject = projects.find((p) => p.id === projectId);
-          if (foundProject) {
-            setProject(foundProject);
-            setInvoiceNo(`AAV/2026-27/${String(projects.indexOf(foundProject) + 1).padStart(3, "0")}`);
-          }
-        } catch (e) {
-          console.error("Error loading from localStorage:", e);
-        }
-      }
+      console.error("Error in loadProject:", error);
     }
   };
 
@@ -93,12 +82,34 @@ export default function Invoice() {
     );
   }
 
-  const handlePrintInvoice = () => {
-    window.print();
-  };
-
   const handleDownloadPDF = () => {
-    window.print();
+    const element = document.getElementById("invoice-container");
+    if (!element) {
+      alert("Invoice not found");
+      return;
+    }
+
+    // Dynamically import html2pdf to avoid SSR issues
+    import("html2pdf.js").then((html2pdfModule) => {
+      const html2pdf = html2pdfModule.default;
+
+      const opt = {
+        margin: 0,
+        filename: `invoice-${invoiceNo.replace(/\//g, "-")}.pdf`,
+        image: { type: "png", quality: 0.98 },
+        html2canvas: {
+          scale: 2,
+          useCORS: true,
+          allowTaint: true,
+          logging: false,
+          backgroundColor: "#ffffff"
+        },
+        jsPDF: { unit: "mm", format: "a4", orientation: "portrait", compress: true },
+        pagebreak: { mode: "avoid-all" },
+      };
+
+      html2pdf().set(opt).from(element).save();
+    });
   };
 
   return (
@@ -123,14 +134,6 @@ export default function Invoice() {
               >
                 <Edit2 className="w-4 h-4" />
                 Edit Project
-              </Button>
-              <Button
-                onClick={handlePrintInvoice}
-                variant="outline"
-                className="gap-2"
-              >
-                <Printer className="w-4 h-4" />
-                Print Invoice
               </Button>
               <Button
                 onClick={handleDownloadPDF}
@@ -174,35 +177,74 @@ export default function Invoice() {
       {/* Print Styles */}
       <style>{`
         @media print {
+          * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            color-adjust: exact !important;
+          }
+
           body {
             margin: 0;
             padding: 0;
-            background: white;
+            background: white !important;
+            font-family: Arial, sans-serif;
           }
+
           .print\\:hidden {
             display: none !important;
           }
+
+          html, body {
+            width: 100%;
+            height: 100%;
+          }
+
           #invoice-container {
-            max-width: none;
-            border-radius: 0;
-            border: none;
-            box-shadow: none;
-            margin: 0;
-            padding: 0;
-            page-break-after: avoid;
-            break-after: avoid;
+            width: 100%;
+            max-width: 100% !important;
+            margin: 0 !important;
+            padding: 48px !important;
+            border: none !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+            page-break-after: avoid !important;
+            break-after: avoid !important;
+            background: white !important;
+            color: black !important;
+            display: block !important;
           }
+
           table {
-            page-break-inside: avoid;
-            break-inside: avoid;
+            width: 100%;
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+            border-collapse: collapse !important;
           }
+
           tr {
-            page-break-inside: avoid;
-            break-inside: avoid;
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
           }
-          #invoice-container > div {
-            page-break-inside: avoid;
-            break-inside: avoid;
+
+          td, th {
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+          }
+
+          img {
+            max-width: 100%;
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+          }
+
+          div, section {
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+          }
+
+          @page {
+            margin: 0;
+            size: A4;
           }
         }
       `}</style>
