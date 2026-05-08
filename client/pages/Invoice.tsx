@@ -1,6 +1,6 @@
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Download, Printer, Edit2 } from "lucide-react";
+import { ArrowLeft, Download, Edit2 } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import InvoiceContent from "@/components/InvoiceContent";
@@ -82,10 +82,6 @@ export default function Invoice() {
     );
   }
 
-  const handlePrintInvoice = () => {
-    window.print();
-  };
-
   const handleDownloadPDF = () => {
     const element = document.getElementById("invoice-container");
     if (!element) {
@@ -98,12 +94,12 @@ export default function Invoice() {
       const html2pdf = html2pdfModule.default;
 
       const opt = {
-        margin: 0,
+        margin: [5, 5, 5, 5],
         filename: `invoice-${invoiceNo.replace(/\//g, "-")}.pdf`,
         image: { type: "png", quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, allowTaint: true },
+        html2canvas: { scale: 2, useCORS: true, allowTaint: true, logging: false },
         jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-        pagebreak: { mode: ["avoid-all"] },
+        pagebreak: { mode: "avoid-all", before: ["#invoice-container"] },
       };
 
       html2pdf().set(opt).from(element).save();
@@ -132,14 +128,6 @@ export default function Invoice() {
               >
                 <Edit2 className="w-4 h-4" />
                 Edit Project
-              </Button>
-              <Button
-                onClick={handlePrintInvoice}
-                variant="outline"
-                className="gap-2"
-              >
-                <Printer className="w-4 h-4" />
-                Print Invoice
               </Button>
               <Button
                 onClick={handleDownloadPDF}
