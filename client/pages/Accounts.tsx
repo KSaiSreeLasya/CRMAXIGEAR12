@@ -1,7 +1,9 @@
 import Layout from "@/components/Layout";
+import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { ArrowLeft, Edit, FileText, Trash2 } from "lucide-react";
 
 interface EstimationRecord {
   id: string;
@@ -36,9 +38,11 @@ const DEFAULT_FORM: EstimationFormData = {
 };
 
 export default function Accounts() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState<EstimationFormData>(DEFAULT_FORM);
   const [estimations, setEstimations] = useState<EstimationRecord[]>([]);
   const [loading, setLoading] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   useEffect(() => {
     loadEstimations();
@@ -91,7 +95,52 @@ export default function Accounts() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleCreateEstimation = async (e: React.FormEvent) => {
+  const persistEstimations = (next: EstimationRecord[]) => {
+    localStorage.setItem("crm_estimations", JSON.stringify(next));
+    setEstimations(next);
+  };
+
+  const startEditEstimation = (row: EstimationRecord) => {
+    setEditingId(row.id);
+    setFormData({
+      customerName: row.customerName,
+      address: row.address,
+      contactNo: row.contactNo,
+      model: row.model,
+      estimationSlipNo: row.estimationSlipNo,
+      estimationDate: row.estimationDate,
+      amount: String(row.amount),
+    });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const cancelEditEstimation = () => {
+    setEditingId(null);
+    setFormData(DEFAULT_FORM);
+  };
+
+  const handleDeleteEstimation = async (id: string) => {
+    if (!window.confirm("Delete this estimation slip? This cannot be undone.")) {
+      return;
+    }
+
+    if (supabase) {
+      try {
+        const { error } = await supabase.from("estimations").delete().eq("id", id);
+        if (error) throw error;
+      } catch (supabaseError) {
+        console.error("Error deleting estimation from Supabase:", supabaseError);
+      }
+    }
+
+    const next = estimations.filter((row) => row.id !== id);
+    persistEstimations(next);
+    if (editingId === id) {
+      cancelEditEstimation();
+    }
+  };
+
+  const handleEstimationFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
@@ -99,6 +148,48 @@ export default function Accounts() {
       const amount = parseFloat(formData.amount);
       if (Number.isNaN(amount)) {
         alert("Please enter a valid amount.");
+        return;
+      }
+
+      if (editingId) {
+        const existing = estimations.find((row) => row.id === editingId);
+        const updatedRow: EstimationRecord = {
+          id: editingId,
+          customerName: formData.customerName,
+          address: formData.address,
+          contactNo: formData.contactNo,
+          model: formData.model,
+          estimationSlipNo: formData.estimationSlipNo,
+          estimationDate: formData.estimationDate,
+          amount,
+          createdAt: existing?.createdAt ?? new Date().toLocaleDateString(),
+        };
+
+        if (supabase) {
+          try {
+            const { error } = await supabase
+              .from("estimations")
+              .update({
+                customer_name: formData.customerName,
+                address: formData.address,
+                contact_no: formData.contactNo,
+                model: formData.model,
+                estimation_slip_no: formData.estimationSlipNo,
+                estimation_date: formData.estimationDate,
+                amount,
+              })
+              .eq("id", editingId);
+
+            if (error) throw error;
+          } catch (supabaseError) {
+            console.error("Error updating estimation in Supabase:", supabaseError);
+          }
+        }
+
+        const next = estimations.map((row) => (row.id === editingId ? updatedRow : row));
+        persistEstimations(next);
+        setFormData(DEFAULT_FORM);
+        setEditingId(null);
         return;
       }
 
@@ -160,12 +251,11 @@ export default function Accounts() {
       }
 
       const updated = [localRecord, ...estimations];
-      localStorage.setItem("crm_estimations", JSON.stringify(updated));
-      setEstimations(updated);
+      persistEstimations(updated);
       setFormData(DEFAULT_FORM);
     } catch (error: any) {
-      const errorMessage = error?.message || "Failed to create estimation";
-      console.error("Error creating estimation:", errorMessage);
+      const errorMessage = error?.message || "Failed to save estimation";
+      console.error("Error saving estimation:", errorMessage);
       alert(errorMessage);
     } finally {
       setLoading(false);
@@ -183,17 +273,28 @@ export default function Accounts() {
     <Layout>
       <div className="container mx-auto px-4 py-12">
         <div className="space-y-8">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => navigate("/dashboard")}
+            className="gap-2"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to Dashboard
+          </Button>
           <div>
-            <h1 className="text-3xl font-bold mb-2">Accounts - Estimation Cost</h1>
+            <h1 className="text-3xl font-bold mb-2">Sales - Estimation Cost</h1>
             <p className="text-muted-foreground">
               Create and track estimation slips for customers.
             </p>
           </div>
 
           <div className="bg-card rounded-lg border border-border p-6">
-            <h2 className="text-xl font-semibold mb-6">Create Estimation Cost</h2>
+            <h2 className="text-xl font-semibold mb-6">
+              {editingId ? "Edit Estimation Cost" : "Create Estimation Cost"}
+            </h2>
             <form
-              onSubmit={handleCreateEstimation}
+              onSubmit={handleEstimationFormSubmit}
               className="grid grid-cols-1 md:grid-cols-2 gap-4"
             >
               <div>
@@ -284,13 +385,23 @@ export default function Accounts() {
                 />
               </div>
 
-              <div className="md:col-span-2 flex justify-end">
+              <div className="md:col-span-2 flex justify-end gap-3">
+                {editingId && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={cancelEditEstimation}
+                    disabled={loading}
+                  >
+                    Cancel
+                  </Button>
+                )}
                 <button
                   type="submit"
                   disabled={loading}
                   className="inline-flex items-center rounded-lg bg-primary px-5 py-2.5 text-primary-foreground hover:bg-primary/90 disabled:opacity-60"
                 >
-                  {loading ? "Saving..." : "Create Estimation"}
+                  {loading ? "Saving..." : editingId ? "Update Estimation" : "Create Estimation"}
                 </button>
               </div>
             </form>
@@ -311,12 +422,12 @@ export default function Accounts() {
                       <th className="text-left px-4 py-3">Contact</th>
                       <th className="text-left px-4 py-3">Date</th>
                       <th className="text-left px-4 py-3">Amount (Incl. GST)</th>
-                      <th className="text-left px-4 py-3">Slip</th>
+                      <th className="text-left px-4 py-3">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {estimations.map((item) => (
-                      <tr key={item.id} className="border-b border-border">
+                      <tr key={item.id} className="border-b border-border hover:bg-muted/50">
                         <td className="px-4 py-3">{item.estimationSlipNo}</td>
                         <td className="px-4 py-3">{item.customerName}</td>
                         <td className="px-4 py-3">{item.model}</td>
@@ -326,12 +437,33 @@ export default function Accounts() {
                           {formatAmount(item.amount * 1.05)}
                         </td>
                         <td className="px-4 py-3">
-                          <Link
-                            to={`/estimation-slip/${item.id}`}
-                            className="text-primary hover:text-primary/90 font-medium"
-                          >
-                            View Slip
-                          </Link>
+                          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+                            <Link
+                              to={`/estimation-slip/${item.id}`}
+                              className="inline-flex items-center gap-1.5 text-primary hover:text-primary/90 font-medium text-sm"
+                            >
+                              <FileText className="w-4 h-4 shrink-0" />
+                              View slip
+                            </Link>
+                            <button
+                              type="button"
+                              onClick={() => startEditEstimation(item)}
+                              className="inline-flex items-center gap-1.5 text-primary hover:text-primary/90 font-medium text-sm"
+                              title="Edit slip"
+                            >
+                              <Edit className="w-4 h-4 shrink-0" />
+                              Edit
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => void handleDeleteEstimation(item.id)}
+                              className="inline-flex items-center gap-1.5 text-destructive hover:text-destructive/90 font-medium text-sm"
+                              title="Delete slip"
+                            >
+                              <Trash2 className="w-4 h-4 shrink-0" />
+                              Delete
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}

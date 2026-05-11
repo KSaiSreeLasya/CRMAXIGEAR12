@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -10,7 +11,8 @@ import Accounts from "./pages/Accounts";
 import EstimationSlip from "./pages/EstimationSlip";
 import Invoice from "./pages/Invoice";
 import NotFound from "./pages/NotFound";
-import { isAuthenticated } from "./lib/auth";
+import { hydrateAuthTokenFromSupabase, isAuthenticated } from "./lib/auth";
+import { supabase } from "./lib/supabase";
 
 const queryClient = new QueryClient();
 
@@ -18,32 +20,74 @@ const ProtectedRoute = ({ element }: { element: React.ReactNode }) => {
   return isAuthenticated() ? element : <Navigate to="/login" replace />;
 };
 
-export const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route
-            path="/"
-            element={<Navigate to={isAuthenticated() ? "/dashboard" : "/login"} replace />}
-          />
-          <Route path="/dashboard" element={<ProtectedRoute element={<Dashboard />} />} />
-          <Route path="/projects" element={<ProtectedRoute element={<Projects />} />} />
-          <Route path="/accounts" element={<ProtectedRoute element={<Accounts />} />} />
-          <Route
-            path="/estimation-slip/:estimationId"
-            element={<ProtectedRoute element={<EstimationSlip />} />}
-          />
-          <Route path="/invoice/:projectId" element={<ProtectedRoute element={<Invoice />} />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+function AppRoutes() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route
+          path="/"
+          element={<Navigate to={isAuthenticated() ? "/dashboard" : "/login"} replace />}
+        />
+        <Route path="/dashboard" element={<ProtectedRoute element={<Dashboard />} />} />
+        <Route path="/projects" element={<ProtectedRoute element={<Projects />} />} />
+        <Route path="/accounts" element={<ProtectedRoute element={<Accounts />} />} />
+        <Route
+          path="/estimation-slip/:estimationId"
+          element={<ProtectedRoute element={<EstimationSlip />} />}
+        />
+        <Route path="/invoice/:projectId" element={<ProtectedRoute element={<Invoice />} />} />
+        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </BrowserRouter>
+  );
+}
+
+export const App = () => {
+  const [authReady, setAuthReady] = useState(() => !supabase);
+
+  useEffect(() => {
+    if (!supabase) return;
+
+    let cancelled = false;
+
+    void (async () => {
+      await hydrateAuthTokenFromSupabase();
+      if (!cancelled) setAuthReady(true);
+    })();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.access_token) {
+        localStorage.setItem("auth_token", session.access_token);
+      } else {
+        localStorage.removeItem("auth_token");
+      }
+    });
+
+    return () => {
+      cancelled = true;
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        {!authReady ? (
+          <div className="min-h-screen flex items-center justify-center bg-background text-muted-foreground text-sm">
+            Loading…
+          </div>
+        ) : (
+          <AppRoutes />
+        )}
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;

@@ -106,7 +106,7 @@ export default function EstimationSlip() {
         <div className="container mx-auto px-4 py-12">
           <div className="text-center space-y-4">
             <h2 className="text-2xl font-semibold">Estimation not found</h2>
-            <Button onClick={() => navigate("/accounts")}>Back to Accounts</Button>
+            <Button onClick={() => navigate("/accounts")}>Back to Sales</Button>
           </div>
         </div>
       </Layout>
@@ -124,7 +124,7 @@ export default function EstimationSlip() {
               className="gap-2"
             >
               <ArrowLeft className="w-4 h-4" />
-              Back to Accounts
+              Back to Sales
             </Button>
             <Button
               onClick={handleDownloadPDF}

@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/lib/supabase";
+import { hydrateAuthTokenFromSupabase, isAuthenticated } from "@/lib/auth";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -9,6 +10,12 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (isAuthenticated()) {
+      navigate("/dashboard", { replace: true });
+    }
+  }, [navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,14 +29,21 @@ export default function Login() {
           password,
         });
         if (error) throw error;
-        if (data.session) {
+        if (data.session?.access_token) {
           localStorage.setItem("auth_token", data.session.access_token);
-          navigate("/dashboard");
+        } else {
+          await hydrateAuthTokenFromSupabase();
         }
+        if (!isAuthenticated()) {
+          throw new Error(
+            "Sign-in did not return a session. Confirm your email in Supabase or try again.",
+          );
+        }
+        navigate("/dashboard", { replace: true });
       } else {
         // Offline mode: allow login without Supabase
         localStorage.setItem("auth_token", "offline-" + Date.now());
-        navigate("/dashboard");
+        navigate("/dashboard", { replace: true });
       }
     } catch (err: any) {
       setError(err.message || "An error occurred");

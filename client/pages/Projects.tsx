@@ -1,8 +1,8 @@
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash2, Edit, FileText } from "lucide-react";
+import { Plus, Trash2, Edit, FileText, ArrowLeft } from "lucide-react";
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import CreateProjectModal from "@/components/CreateProjectModal";
 import EditProjectModal from "@/components/EditProjectModal";
 import { supabase } from "@/lib/supabase";
@@ -20,6 +20,7 @@ export interface Project {
 }
 
 export default function Projects() {
+  const navigate = useNavigate();
   const [projects, setProjects] = useState<Project[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -224,12 +225,21 @@ export default function Projects() {
     <Layout>
       <div className="container mx-auto px-4 py-12">
         <div className="space-y-8">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => navigate("/dashboard")}
+            className="gap-2"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to Dashboard
+          </Button>
           {/* Header */}
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold mb-2">Sales</h1>
+              <h1 className="text-3xl font-bold mb-2">Accounts</h1>
               <p className="text-muted-foreground">
-                Create and manage your EV bike sales entries with retailers.
+                Create and manage your EV bike account entries with retailers.
               </p>
             </div>
             <Button
@@ -237,24 +247,24 @@ export default function Projects() {
               className="bg-primary hover:bg-primary/90 text-primary-foreground gap-2"
             >
               <Plus className="w-4 h-4" />
-              Create Sales
+              Add account
             </Button>
           </div>
 
-          {/* Sales Table */}
+          {/* Accounts table */}
           {projects.length === 0 ? (
             <div className="bg-card rounded-lg border border-border p-12 text-center">
               <div className="space-y-4 max-w-md mx-auto">
-                <h2 className="text-2xl font-semibold">No sales yet</h2>
+                <h2 className="text-2xl font-semibold">No accounts yet</h2>
                 <p className="text-muted-foreground">
-                  Create your first sales entry to start tracking EV bike sales opportunities.
+                  Create your first account entry to start tracking EV bike opportunities.
                 </p>
                 <Button
                   onClick={() => setIsModalOpen(true)}
                   className="bg-primary hover:bg-primary/90 text-primary-foreground gap-2"
                 >
                   <Plus className="w-4 h-4" />
-                  Create Sales
+                  Add account
                 </Button>
               </div>
             </div>

@@ -41,13 +41,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               to="/projects"
               className="text-sm font-medium transition-colors hover:text-primary"
             >
-              Sales
+              Accounts
             </Link>
             <Link
               to="/accounts"
               className="text-sm font-medium transition-colors hover:text-primary"
             >
-              Accounts
+              Sales
             </Link>
             <button
               onClick={handleLogout}
@@ -68,14 +68,14 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 className="text-sm font-medium transition-colors hover:text-primary"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                Sales
+                Accounts
               </Link>
               <Link
                 to="/accounts"
                 className="text-sm font-medium transition-colors hover:text-primary"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                Accounts
+                Sales
               </Link>
               <button
                 onClick={() => {

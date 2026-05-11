@@ -24,9 +24,9 @@ export default function Dashboard() {
                   <Briefcase className="h-6 w-6" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-semibold">SALES</h2>
+                  <h2 className="text-xl font-semibold">ACCOUNTS</h2>
                   <p className="text-sm text-muted-foreground">
-                    Manage sales entries and invoices.
+                    Manage account entries and invoices.
                   </p>
                 </div>
               </div>
@@ -41,7 +41,7 @@ export default function Dashboard() {
                   <Calculator className="h-6 w-6" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-semibold">ACCOUNTS</h2>
+                  <h2 className="text-xl font-semibold">SALES</h2>
                   <p className="text-sm text-muted-foreground">
                     Create and manage estimation costs.
                   </p>
