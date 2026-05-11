@@ -41,7 +41,8 @@ export default function Accounts() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState<EstimationFormData>(DEFAULT_FORM);
   const [estimations, setEstimations] = useState<EstimationRecord[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -55,6 +56,7 @@ export default function Accounts() {
   }, [estimations, editingId, formData.estimationSlipNo]);
 
   const loadEstimations = async () => {
+    setIsLoading(true);
     try {
       if (supabase) {
         try {
@@ -91,6 +93,8 @@ export default function Accounts() {
       }
     } catch (error) {
       console.error("Error in loadEstimations:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -148,7 +152,7 @@ export default function Accounts() {
 
   const handleEstimationFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    setIsSaving(true);
 
     try {
       const amount = parseFloat(formData.amount);
@@ -267,7 +271,7 @@ export default function Accounts() {
       console.error("Error saving estimation:", errorMessage);
       alert(errorMessage);
     } finally {
-      setLoading(false);
+      setIsSaving(false);
     }
   };
 
@@ -400,17 +404,17 @@ export default function Accounts() {
                     type="button"
                     variant="outline"
                     onClick={cancelEditEstimation}
-                    disabled={loading}
+                    disabled={isSaving}
                   >
                     Cancel
                   </Button>
                 )}
                 <button
                   type="submit"
-                  disabled={loading}
+                  disabled={isSaving}
                   className="inline-flex items-center rounded-lg bg-primary px-5 py-2.5 text-primary-foreground hover:bg-primary/90 disabled:opacity-60"
                 >
-                  {loading ? "Saving..." : editingId ? "Update Estimation" : "Create Estimation"}
+                  {isSaving ? "Saving..." : editingId ? "Update Estimation" : "Create Estimation"}
                 </button>
               </div>
             </form>
@@ -418,7 +422,9 @@ export default function Accounts() {
 
           <div className="bg-card rounded-lg border border-border p-6">
             <h2 className="text-xl font-semibold mb-4">Estimations</h2>
-            {estimations.length === 0 ? (
+            {isLoading ? (
+              <p className="text-muted-foreground">Loading estimations...</p>
+            ) : estimations.length === 0 ? (
               <p className="text-muted-foreground">No estimations created yet.</p>
             ) : (
               <div className="overflow-x-auto">

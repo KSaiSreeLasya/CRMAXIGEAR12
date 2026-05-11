@@ -11,6 +11,7 @@ export default function Invoice() {
   const { projectId } = useParams();
   const navigate = useNavigate();
   const [project, setProject] = useState<Project | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [invoiceNo, setInvoiceNo] = useState("");
   const [gstType, setGstType] = useState<"igst" | "cgst-sgst">("cgst-sgst");
   const [placeOfSupply, setPlaceOfSupply] = useState<string>("TG");
@@ -66,6 +67,7 @@ export default function Invoice() {
   }, [settingsKey, invoiceNo, gstType, placeOfSupply]);
 
   const loadProject = async () => {
+    setIsLoading(true);
     try {
       if (supabase && projectId) {
         try {
@@ -109,8 +111,22 @@ export default function Invoice() {
       }
     } catch (error) {
       console.error("Error in loadProject:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
+
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="container mx-auto px-4 py-12">
+          <div className="text-center space-y-4">
+            <h2 className="text-2xl font-semibold">Loading invoice...</h2>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   if (!project) {
     return (
@@ -148,10 +164,17 @@ export default function Invoice() {
           useCORS: true,
           allowTaint: true,
           logging: false,
-          backgroundColor: "#ffffff"
+          backgroundColor: "#ffffff",
+          windowWidth: element.scrollWidth,
+          windowHeight: element.scrollHeight,
         },
-        jsPDF: { unit: "mm", format: "a4", orientation: "portrait", compress: true },
-        pagebreak: { mode: "avoid-all" },
+        jsPDF: {
+          unit: "px",
+          format: [element.scrollWidth, element.scrollHeight],
+          orientation: element.scrollWidth > element.scrollHeight ? "landscape" : "portrait",
+          compress: true,
+        },
+        pagebreak: { mode: ["css", "legacy"] },
       };
 
       html2pdf().set(opt).from(element).save();

@@ -17,7 +17,7 @@ interface EstimationSlipContentProps {
 }
 
 const COMPANY_INFO = {
-  name: "AXIGEAR AUTO VENTURES LLP",
+  name: "AXIGEAR ELECTRIC LOUNGE",
   address: "SY 02, PLOT NO.148, MYTHRI NAGAR, MADINAGUDA",
   city: "HYDERABAD, TELANGANA, INDIA 500049",
   bank: {

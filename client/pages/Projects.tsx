@@ -25,6 +25,7 @@ export interface Project {
 export default function Projects() {
   const navigate = useNavigate();
   const [projects, setProjects] = useState<Project[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
@@ -35,6 +36,7 @@ export default function Projects() {
   }, []);
 
   const loadProjects = async () => {
+    setIsLoading(true);
     try {
       if (supabase) {
         try {
@@ -76,6 +78,8 @@ export default function Projects() {
     } catch (error) {
       console.error("Error in loadProjects:", error);
       // Silent fail - projects will remain empty
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -270,7 +274,13 @@ export default function Projects() {
           </div>
 
           {/* Accounts table */}
-          {projects.length === 0 ? (
+          {isLoading ? (
+            <div className="bg-card rounded-lg border border-border p-12 text-center">
+              <div className="space-y-4 max-w-md mx-auto">
+                <h2 className="text-2xl font-semibold">Loading accounts...</h2>
+              </div>
+            </div>
+          ) : projects.length === 0 ? (
             <div className="bg-card rounded-lg border border-border p-12 text-center">
               <div className="space-y-4 max-w-md mx-auto">
                 <h2 className="text-2xl font-semibold">No accounts yet</h2>

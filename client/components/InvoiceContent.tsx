@@ -269,7 +269,7 @@ export default function InvoiceContent({
           *This is a computer generated invoice and doesn't need a signature*
         </p>
         <p className="font-bold text-gray-800 text-xs">
-          {COMPANY_INFO.name}
+          AXIGEAR AUTO VENTURES LLP
         </p>
       </div>
     </div>

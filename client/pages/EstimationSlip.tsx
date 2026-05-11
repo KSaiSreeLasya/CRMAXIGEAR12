@@ -22,6 +22,7 @@ export default function EstimationSlip() {
   const { estimationId } = useParams();
   const navigate = useNavigate();
   const [estimation, setEstimation] = useState<EstimationRecord | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [gstType, setGstType] = useState<"igst" | "cgst-sgst">("cgst-sgst");
   const settingsKey = estimationId ? `crm_estimation_settings_${estimationId}` : null;
 
@@ -56,6 +57,7 @@ export default function EstimationSlip() {
   }, [settingsKey, gstType]);
 
   const loadEstimation = async () => {
+    setIsLoading(true);
     try {
       if (supabase && estimationId) {
         try {
@@ -94,6 +96,8 @@ export default function EstimationSlip() {
       }
     } catch (error) {
       console.error("Error loading estimation slip:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -117,14 +121,33 @@ export default function EstimationSlip() {
           allowTaint: true,
           logging: false,
           backgroundColor: "#ffffff",
+          windowWidth: element.scrollWidth,
+          windowHeight: element.scrollHeight,
         },
-        jsPDF: { unit: "mm", format: "a4", orientation: "portrait", compress: true },
-        pagebreak: { mode: "avoid-all" },
+        jsPDF: {
+          unit: "px",
+          format: [element.scrollWidth, element.scrollHeight],
+          orientation: element.scrollWidth > element.scrollHeight ? "landscape" : "portrait",
+          compress: true,
+        },
+        pagebreak: { mode: ["css", "legacy"] },
       };
 
       html2pdf().set(opt).from(element).save();
     });
   };
+
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="container mx-auto px-4 py-12">
+          <div className="text-center space-y-4">
+            <h2 className="text-2xl font-semibold">Loading estimation slip...</h2>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   if (!estimation) {
     return (
