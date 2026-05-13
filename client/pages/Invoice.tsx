@@ -89,6 +89,11 @@ export default function Invoice() {
               chassisNo: data.chassis_no,
               motorNo: data.motor_no || "",
               batteryNo: data.battery_no || "",
+              batteryWarranty: data.battery_warranty || "",
+              batteryCapacity: data.battery_capacity || "",
+              kmsRange: data.kms_range || "",
+              speed: data.speed || "",
+              vehicleWarranty: data.vehicle_warranty || "",
               invoiceDate: data.invoice_date || "",
               amount: data.amount,
               createdAt: new Date(data.created_at).toLocaleDateString(),
@@ -107,7 +112,14 @@ export default function Invoice() {
         const projects = JSON.parse(savedProjects) as Project[];
         const foundProject = projects.find((p) => p.id === projectId);
         if (foundProject) {
-          setProject(foundProject);
+          setProject({
+            ...foundProject,
+            batteryWarranty: foundProject.batteryWarranty ?? "",
+            batteryCapacity: foundProject.batteryCapacity ?? "",
+            kmsRange: foundProject.kmsRange ?? "",
+            speed: foundProject.speed ?? "",
+            vehicleWarranty: foundProject.vehicleWarranty ?? "",
+          });
         }
       }
     } catch (error) {
@@ -134,11 +146,11 @@ export default function Invoice() {
       <Layout>
         <div className="container mx-auto px-4 py-12">
           <div className="text-center space-y-4">
-            <h2 className="text-2xl font-semibold">Project not found</h2>
+            <h2 className="text-2xl font-semibold">Sale not found</h2>
             <p className="text-muted-foreground">
               The project you're looking for doesn't exist.
             </p>
-            <Button onClick={() => navigate("/projects")}>Back to Projects</Button>
+            <Button onClick={() => navigate("/projects")}>Back to Sales</Button>
           </div>
         </div>
       </Layout>
@@ -159,7 +171,7 @@ export default function Invoice() {
       const opt = {
         margin: 0,
         filename: `invoice-${invoiceNo.replace(/\//g, "-")}.pdf`,
-        image: { type: "png", quality: 0.98 },
+        image: { type: "png" as const, quality: 0.98 },
         html2canvas: {
           scale: 2,
           useCORS: true,
@@ -171,8 +183,9 @@ export default function Invoice() {
         },
         jsPDF: {
           unit: "px",
-          format: [element.scrollWidth, element.scrollHeight],
-          orientation: element.scrollWidth > element.scrollHeight ? "landscape" : "portrait",
+          format: [element.scrollWidth, element.scrollHeight] as [number, number],
+          orientation:
+            element.scrollWidth > element.scrollHeight ? ("landscape" as const) : ("portrait" as const),
           compress: true,
         },
         pagebreak: { mode: ["css", "legacy"] },
@@ -194,7 +207,7 @@ export default function Invoice() {
               className="gap-2"
             >
               <ArrowLeft className="w-4 h-4" />
-              Back to Projects
+              Back to Sales
             </Button>
             <div className="flex gap-4">
               <Button
@@ -203,7 +216,7 @@ export default function Invoice() {
                 className="gap-2"
               >
                 <Edit2 className="w-4 h-4" />
-                Edit Project
+                Edit sale
               </Button>
               <Button
                 onClick={handleDownloadPDF}

@@ -14,6 +14,11 @@ interface EstimationRecord {
   estimationSlipNo: string;
   estimationDate: string;
   amount: number;
+  batteryWarranty: string;
+  batteryCapacity: string;
+  kmsRange: string;
+  speed: string;
+  vehicleWarranty: string;
   createdAt: string;
 }
 
@@ -25,6 +30,11 @@ interface EstimationFormData {
   estimationSlipNo: string;
   estimationDate: string;
   amount: string;
+  batteryWarranty: string;
+  batteryCapacity: string;
+  kmsRange: string;
+  speed: string;
+  vehicleWarranty: string;
 }
 
 const DEFAULT_FORM: EstimationFormData = {
@@ -35,6 +45,11 @@ const DEFAULT_FORM: EstimationFormData = {
   estimationSlipNo: "",
   estimationDate: "",
   amount: "",
+  batteryWarranty: "",
+  batteryCapacity: "",
+  kmsRange: "",
+  speed: "",
+  vehicleWarranty: "",
 };
 
 export default function Accounts() {
@@ -77,6 +92,11 @@ export default function Accounts() {
               estimationSlipNo: row.estimation_slip_no,
               estimationDate: row.estimation_date,
               amount: row.amount,
+              batteryWarranty: row.battery_warranty || "",
+              batteryCapacity: row.battery_capacity || "",
+              kmsRange: row.kms_range || "",
+              speed: row.speed || "",
+              vehicleWarranty: row.vehicle_warranty || "",
               createdAt: new Date(row.created_at).toLocaleDateString(),
             })) || [];
 
@@ -89,7 +109,17 @@ export default function Accounts() {
 
       const saved = localStorage.getItem("crm_estimations");
       if (saved) {
-        setEstimations(JSON.parse(saved));
+        const parsed = JSON.parse(saved) as EstimationRecord[];
+        setEstimations(
+          parsed.map((row) => ({
+            ...row,
+            batteryWarranty: row.batteryWarranty ?? "",
+            batteryCapacity: row.batteryCapacity ?? "",
+            kmsRange: row.kmsRange ?? "",
+            speed: row.speed ?? "",
+            vehicleWarranty: row.vehicleWarranty ?? "",
+          })),
+        );
       }
     } catch (error) {
       console.error("Error in loadEstimations:", error);
@@ -120,6 +150,11 @@ export default function Accounts() {
       estimationSlipNo: row.estimationSlipNo,
       estimationDate: row.estimationDate,
       amount: String(row.amount),
+      batteryWarranty: row.batteryWarranty,
+      batteryCapacity: row.batteryCapacity,
+      kmsRange: row.kmsRange,
+      speed: row.speed,
+      vehicleWarranty: row.vehicleWarranty,
     });
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -172,6 +207,11 @@ export default function Accounts() {
           estimationSlipNo: formData.estimationSlipNo,
           estimationDate: formData.estimationDate,
           amount,
+          batteryWarranty: formData.batteryWarranty,
+          batteryCapacity: formData.batteryCapacity,
+          kmsRange: formData.kmsRange,
+          speed: formData.speed,
+          vehicleWarranty: formData.vehicleWarranty,
           createdAt: existing?.createdAt ?? new Date().toLocaleDateString(),
         };
 
@@ -187,6 +227,11 @@ export default function Accounts() {
                 estimation_slip_no: formData.estimationSlipNo,
                 estimation_date: formData.estimationDate,
                 amount,
+                battery_warranty: formData.batteryWarranty || null,
+                battery_capacity: formData.batteryCapacity || null,
+                kms_range: formData.kmsRange || null,
+                speed: formData.speed || null,
+                vehicle_warranty: formData.vehicleWarranty || null,
               })
               .eq("id", editingId);
 
@@ -212,6 +257,11 @@ export default function Accounts() {
         estimationSlipNo: formData.estimationSlipNo,
         estimationDate: formData.estimationDate,
         amount,
+        batteryWarranty: formData.batteryWarranty,
+        batteryCapacity: formData.batteryCapacity,
+        kmsRange: formData.kmsRange,
+        speed: formData.speed,
+        vehicleWarranty: formData.vehicleWarranty,
         createdAt: new Date().toLocaleDateString(),
       };
 
@@ -234,6 +284,11 @@ export default function Accounts() {
                 estimation_slip_no: formData.estimationSlipNo,
                 estimation_date: formData.estimationDate,
                 amount,
+                battery_warranty: formData.batteryWarranty || null,
+                battery_capacity: formData.batteryCapacity || null,
+                kms_range: formData.kmsRange || null,
+                speed: formData.speed || null,
+                vehicle_warranty: formData.vehicleWarranty || null,
               },
             ])
             .select();
@@ -249,6 +304,11 @@ export default function Accounts() {
             estimationSlipNo: data[0].estimation_slip_no,
             estimationDate: data[0].estimation_date,
             amount: data[0].amount,
+            batteryWarranty: data[0].battery_warranty || "",
+            batteryCapacity: data[0].battery_capacity || "",
+            kmsRange: data[0].kms_range || "",
+            speed: data[0].speed || "",
+            vehicleWarranty: data[0].vehicle_warranty || "",
             createdAt: new Date(data[0].created_at).toLocaleDateString(),
           };
 
@@ -296,7 +356,7 @@ export default function Accounts() {
             Back to Dashboard
           </Button>
           <div>
-            <h1 className="text-3xl font-bold mb-2">Sales - Estimation Cost</h1>
+            <h1 className="text-3xl font-bold mb-2">Estimation cost</h1>
             <p className="text-muted-foreground">
               Create and track estimation slips for customers.
             </p>
@@ -396,6 +456,69 @@ export default function Accounts() {
                   required
                   className="w-full px-4 py-2 border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary"
                 />
+              </div>
+
+              <div className="md:col-span-2">
+                <p className="text-sm font-semibold text-muted-foreground mb-3 border-b border-border pb-2">
+                  Battery &amp; vehicle specifications
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Battery warranty</label>
+                    <input
+                      type="text"
+                      name="batteryWarranty"
+                      value={formData.batteryWarranty}
+                      onChange={handleInputChange}
+                      placeholder="e.g. 24 months"
+                      className="w-full px-4 py-2 border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Battery capacity</label>
+                    <input
+                      type="text"
+                      name="batteryCapacity"
+                      value={formData.batteryCapacity}
+                      onChange={handleInputChange}
+                      placeholder="e.g. 3.5 kWh"
+                      className="w-full px-4 py-2 border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">KM range</label>
+                    <input
+                      type="text"
+                      name="kmsRange"
+                      value={formData.kmsRange}
+                      onChange={handleInputChange}
+                      placeholder="e.g. 120 km"
+                      className="w-full px-4 py-2 border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Speed</label>
+                    <input
+                      type="text"
+                      name="speed"
+                      value={formData.speed}
+                      onChange={handleInputChange}
+                      placeholder="e.g. 65 km/h"
+                      className="w-full px-4 py-2 border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium mb-2">Vehicle warranty</label>
+                    <input
+                      type="text"
+                      name="vehicleWarranty"
+                      value={formData.vehicleWarranty}
+                      onChange={handleInputChange}
+                      placeholder="e.g. 36 months"
+                      className="w-full px-4 py-2 border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  </div>
+                </div>
               </div>
 
               <div className="md:col-span-2 flex justify-end gap-3">

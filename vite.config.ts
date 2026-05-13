@@ -32,8 +32,16 @@ function expressPlugin(): Plugin {
     configureServer(server) {
       const app = createServer();
 
-      // Add Express app as middleware to Vite dev server
-      server.middlewares.use(app);
+      // Only forward /api/* to Express. Mounting the full app on every path breaks SPA
+      // refresh (e.g. /projects) because Express returns 404 before Vite serves index.html.
+      server.middlewares.use((req, res, next) => {
+        const pathname = req.url?.split("?")[0] ?? "";
+        if (pathname.startsWith("/api")) {
+          app(req, res, next);
+        } else {
+          next();
+        }
+      });
     },
   };
 }

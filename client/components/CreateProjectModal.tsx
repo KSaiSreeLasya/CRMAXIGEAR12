@@ -25,6 +25,11 @@ export default function CreateProjectModal({
     chassisNo: "",
     motorNo: "",
     batteryNo: "",
+    batteryWarranty: "",
+    batteryCapacity: "",
+    kmsRange: "",
+    speed: "",
+    vehicleWarranty: "",
     invoiceDate: "",
     amount: "",
   });
@@ -117,6 +122,11 @@ export default function CreateProjectModal({
       chassisNo: formData.chassisNo,
       motorNo: formData.motorNo,
       batteryNo: formData.batteryNo,
+      batteryWarranty: formData.batteryWarranty,
+      batteryCapacity: formData.batteryCapacity,
+      kmsRange: formData.kmsRange,
+      speed: formData.speed,
+      vehicleWarranty: formData.vehicleWarranty,
       invoiceDate: formData.invoiceDate,
       amount: parseFloat(formData.amount),
     });
@@ -132,6 +142,11 @@ export default function CreateProjectModal({
       chassisNo: "",
       motorNo: "",
       batteryNo: "",
+      batteryWarranty: "",
+      batteryCapacity: "",
+      kmsRange: "",
+      speed: "",
+      vehicleWarranty: "",
       invoiceDate: "",
       amount: "",
     });
@@ -204,7 +219,7 @@ export default function CreateProjectModal({
         <div className="bg-card rounded-lg border border-border shadow-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
           {/* Modal Header */}
           <div className="sticky top-0 bg-card border-b border-border p-6 flex items-center justify-between">
-            <h2 className="text-2xl font-bold">Create New Account</h2>
+            <h2 className="text-2xl font-bold">New sales entry</h2>
             <button
               onClick={onClose}
               className="text-muted-foreground hover:text-foreground transition-colors"
@@ -407,6 +422,67 @@ export default function CreateProjectModal({
               )}
             </div>
 
+            <p className="text-sm font-semibold text-muted-foreground pt-2 border-t border-border">
+              Battery &amp; vehicle specifications
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-semibold mb-2">Battery warranty</label>
+                <input
+                  type="text"
+                  name="batteryWarranty"
+                  value={formData.batteryWarranty}
+                  onChange={handleChange}
+                  placeholder="e.g. 24 months"
+                  className="w-full px-4 py-2 border rounded-lg bg-background border-border focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold mb-2">Battery capacity</label>
+                <input
+                  type="text"
+                  name="batteryCapacity"
+                  value={formData.batteryCapacity}
+                  onChange={handleChange}
+                  placeholder="e.g. 3.5 kWh"
+                  className="w-full px-4 py-2 border rounded-lg bg-background border-border focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold mb-2">KM range</label>
+                <input
+                  type="text"
+                  name="kmsRange"
+                  value={formData.kmsRange}
+                  onChange={handleChange}
+                  placeholder="e.g. 120 km"
+                  className="w-full px-4 py-2 border rounded-lg bg-background border-border focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold mb-2">Speed</label>
+                <input
+                  type="text"
+                  name="speed"
+                  value={formData.speed}
+                  onChange={handleChange}
+                  placeholder="e.g. 65 km/h"
+                  className="w-full px-4 py-2 border rounded-lg bg-background border-border focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
+              <div className="sm:col-span-2">
+                <label className="block text-sm font-semibold mb-2">Vehicle warranty</label>
+                <input
+                  type="text"
+                  name="vehicleWarranty"
+                  value={formData.vehicleWarranty}
+                  onChange={handleChange}
+                  placeholder="e.g. 36 months"
+                  className="w-full px-4 py-2 border rounded-lg bg-background border-border focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
+            </div>
+
             <div>
               <label className="block text-sm font-semibold mb-2">
                 Invoice Date *
@@ -459,7 +535,7 @@ export default function CreateProjectModal({
                 type="submit"
                 className="bg-primary hover:bg-primary/90 text-primary-foreground px-6"
               >
-                Add account
+                Save sale
               </Button>
             </div>
           </form>

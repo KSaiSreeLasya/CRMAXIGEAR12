@@ -123,3 +123,18 @@ DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+-- ============================================
+-- 8. VEHICLE / BATTERY SPECS (projects + estimations)
+-- ============================================
+ALTER TABLE IF EXISTS projects ADD COLUMN IF NOT EXISTS battery_warranty TEXT;
+ALTER TABLE IF EXISTS projects ADD COLUMN IF NOT EXISTS battery_capacity TEXT;
+ALTER TABLE IF EXISTS projects ADD COLUMN IF NOT EXISTS kms_range TEXT;
+ALTER TABLE IF EXISTS projects ADD COLUMN IF NOT EXISTS speed TEXT;
+ALTER TABLE IF EXISTS projects ADD COLUMN IF NOT EXISTS vehicle_warranty TEXT;
+
+ALTER TABLE IF EXISTS estimations ADD COLUMN IF NOT EXISTS battery_warranty TEXT;
+ALTER TABLE IF EXISTS estimations ADD COLUMN IF NOT EXISTS battery_capacity TEXT;
+ALTER TABLE IF EXISTS estimations ADD COLUMN IF NOT EXISTS kms_range TEXT;
+ALTER TABLE IF EXISTS estimations ADD COLUMN IF NOT EXISTS speed TEXT;
+ALTER TABLE IF EXISTS estimations ADD COLUMN IF NOT EXISTS vehicle_warranty TEXT;

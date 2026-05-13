@@ -1,0 +1,3 @@
+# SPA fallback: serve index.html for routes like /projects so refresh works.
+# Netlify serves real files (JS/CSS/assets) when they exist; otherwise this rewrite applies.
+/*    /index.html   200

@@ -245,3 +245,19 @@ for update using (auth.uid() = user_id);
 drop policy if exists "payroll_delete_own" on public.employee_monthly_payroll;
 create policy "payroll_delete_own" on public.employee_monthly_payroll
 for delete using (auth.uid() = user_id);
+
+-- ---------------------------------------------------------------------------
+-- Vehicle / battery specs on projects (Sales) and estimations (Estimation cost)
+-- ---------------------------------------------------------------------------
+
+alter table if exists public.projects add column if not exists battery_warranty text;
+alter table if exists public.projects add column if not exists battery_capacity text;
+alter table if exists public.projects add column if not exists kms_range text;
+alter table if exists public.projects add column if not exists speed text;
+alter table if exists public.projects add column if not exists vehicle_warranty text;
+
+alter table if exists public.estimations add column if not exists battery_warranty text;
+alter table if exists public.estimations add column if not exists battery_capacity text;
+alter table if exists public.estimations add column if not exists kms_range text;
+alter table if exists public.estimations add column if not exists speed text;
+alter table if exists public.estimations add column if not exists vehicle_warranty text;

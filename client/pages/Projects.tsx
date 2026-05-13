@@ -18,6 +18,11 @@ export interface Project {
   chassisNo: string;
   motorNo: string;
   batteryNo: string;
+  batteryWarranty: string;
+  batteryCapacity: string;
+  kmsRange: string;
+  speed: string;
+  vehicleWarranty: string;
   invoiceDate: string;
   amount: number;
   createdAt: string;
@@ -59,6 +64,11 @@ export default function Projects() {
             chassisNo: project.chassis_no,
             motorNo: project.motor_no || "",
             batteryNo: project.battery_no || "",
+            batteryWarranty: project.battery_warranty || "",
+            batteryCapacity: project.battery_capacity || "",
+            kmsRange: project.kms_range || "",
+            speed: project.speed || "",
+            vehicleWarranty: project.vehicle_warranty || "",
             invoiceDate: project.invoice_date || "",
             amount: project.amount,
             createdAt: new Date(project.created_at).toLocaleDateString(),
@@ -75,7 +85,17 @@ export default function Projects() {
       // Use localStorage if Supabase is not initialized or failed
       const savedProjects = localStorage.getItem("crm_projects");
       if (savedProjects) {
-        setProjects(JSON.parse(savedProjects));
+        const parsed = JSON.parse(savedProjects) as Project[];
+        setProjects(
+          parsed.map((p) => ({
+            ...p,
+            batteryWarranty: p.batteryWarranty ?? "",
+            batteryCapacity: p.batteryCapacity ?? "",
+            kmsRange: p.kmsRange ?? "",
+            speed: p.speed ?? "",
+            vehicleWarranty: p.vehicleWarranty ?? "",
+          })),
+        );
       }
     } catch (error) {
       console.error("Error in loadProjects:", error);
@@ -98,6 +118,11 @@ export default function Projects() {
         chassisNo: newProject.chassisNo,
         motorNo: newProject.motorNo,
         batteryNo: newProject.batteryNo,
+        batteryWarranty: newProject.batteryWarranty,
+        batteryCapacity: newProject.batteryCapacity,
+        kmsRange: newProject.kmsRange,
+        speed: newProject.speed,
+        vehicleWarranty: newProject.vehicleWarranty,
         invoiceDate: newProject.invoiceDate,
         amount: newProject.amount,
         createdAt: new Date().toLocaleDateString(),
@@ -124,6 +149,11 @@ export default function Projects() {
                 chassis_no: newProject.chassisNo,
                 motor_no: newProject.motorNo,
                 battery_no: newProject.batteryNo,
+                battery_warranty: newProject.batteryWarranty || null,
+                battery_capacity: newProject.batteryCapacity || null,
+                kms_range: newProject.kmsRange || null,
+                speed: newProject.speed || null,
+                vehicle_warranty: newProject.vehicleWarranty || null,
                 invoice_date: newProject.invoiceDate,
                 amount: newProject.amount,
               }
@@ -143,6 +173,11 @@ export default function Projects() {
             chassisNo: data[0].chassis_no,
             motorNo: data[0].motor_no || "",
             batteryNo: data[0].battery_no || "",
+            batteryWarranty: data[0].battery_warranty || "",
+            batteryCapacity: data[0].battery_capacity || "",
+            kmsRange: data[0].kms_range || "",
+            speed: data[0].speed || "",
+            vehicleWarranty: data[0].vehicle_warranty || "",
             invoiceDate: data[0].invoice_date || "",
             amount: data[0].amount,
             createdAt: new Date(data[0].created_at).toLocaleDateString(),
@@ -185,6 +220,11 @@ export default function Projects() {
               chassis_no: updatedData.chassisNo,
               motor_no: updatedData.motorNo,
               battery_no: updatedData.batteryNo,
+              battery_warranty: updatedData.batteryWarranty || null,
+              battery_capacity: updatedData.batteryCapacity || null,
+              kms_range: updatedData.kmsRange || null,
+              speed: updatedData.speed || null,
+              vehicle_warranty: updatedData.vehicleWarranty || null,
               invoice_date: updatedData.invoiceDate,
               amount: updatedData.amount,
             })
@@ -265,9 +305,9 @@ export default function Projects() {
           {/* Header */}
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold mb-2">Accounts</h1>
+              <h1 className="text-3xl font-bold mb-2">Sales</h1>
               <p className="text-muted-foreground">
-                Create and manage your EV bike account entries with retailers.
+                Create and manage EV bike sales entries, invoices, and retailer accounts.
               </p>
             </div>
             <Button
@@ -275,30 +315,30 @@ export default function Projects() {
               className="bg-primary hover:bg-primary/90 text-primary-foreground gap-2"
             >
               <Plus className="w-4 h-4" />
-              Add account
+              Add sale
             </Button>
           </div>
 
-          {/* Accounts table */}
+          {/* Sales table */}
           {isLoading ? (
             <div className="bg-card rounded-lg border border-border p-12 text-center">
               <div className="space-y-4 max-w-md mx-auto">
-                <h2 className="text-2xl font-semibold">Loading accounts...</h2>
+                <h2 className="text-2xl font-semibold">Loading sales...</h2>
               </div>
             </div>
           ) : projects.length === 0 ? (
             <div className="bg-card rounded-lg border border-border p-12 text-center">
               <div className="space-y-4 max-w-md mx-auto">
-                <h2 className="text-2xl font-semibold">No accounts yet</h2>
+                <h2 className="text-2xl font-semibold">No sales entries yet</h2>
                 <p className="text-muted-foreground">
-                  Create your first account entry to start tracking EV bike opportunities.
+                  Create your first sales entry to start tracking EV bike opportunities.
                 </p>
                 <Button
                   onClick={() => setIsModalOpen(true)}
                   className="bg-primary hover:bg-primary/90 text-primary-foreground gap-2"
                 >
                   <Plus className="w-4 h-4" />
-                  Add account
+                  Add sale
                 </Button>
               </div>
             </div>

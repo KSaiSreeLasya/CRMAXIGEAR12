@@ -59,13 +59,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               to="/projects"
               className="text-sm font-medium transition-colors hover:text-primary"
             >
-              Accounts
+              Sales
             </Link>
             <Link
               to="/accounts"
               className="text-sm font-medium transition-colors hover:text-primary"
             >
-              Sales
+              Estimation cost
             </Link>
             <Link
               to="/attendance"
@@ -105,14 +105,14 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 className="text-sm font-medium transition-colors hover:text-primary"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                Accounts
+                Sales
               </Link>
               <Link
                 to="/accounts"
                 className="text-sm font-medium transition-colors hover:text-primary"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                Sales
+                Estimation cost
               </Link>
               <Link
                 to="/attendance"

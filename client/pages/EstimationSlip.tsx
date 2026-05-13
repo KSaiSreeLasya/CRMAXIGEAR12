@@ -15,6 +15,11 @@ interface EstimationRecord {
   estimationSlipNo: string;
   estimationDate: string;
   amount: number;
+  batteryWarranty: string;
+  batteryCapacity: string;
+  kmsRange: string;
+  speed: string;
+  vehicleWarranty: string;
   createdAt: string;
 }
 
@@ -77,6 +82,11 @@ export default function EstimationSlip() {
               estimationSlipNo: data.estimation_slip_no,
               estimationDate: data.estimation_date,
               amount: data.amount,
+              batteryWarranty: data.battery_warranty || "",
+              batteryCapacity: data.battery_capacity || "",
+              kmsRange: data.kms_range || "",
+              speed: data.speed || "",
+              vehicleWarranty: data.vehicle_warranty || "",
               createdAt: new Date(data.created_at).toLocaleDateString(),
             });
             return;
@@ -91,7 +101,14 @@ export default function EstimationSlip() {
         const estimations = JSON.parse(saved) as EstimationRecord[];
         const found = estimations.find((item) => item.id === estimationId);
         if (found) {
-          setEstimation(found);
+          setEstimation({
+            ...found,
+            batteryWarranty: found.batteryWarranty ?? "",
+            batteryCapacity: found.batteryCapacity ?? "",
+            kmsRange: found.kmsRange ?? "",
+            speed: found.speed ?? "",
+            vehicleWarranty: found.vehicleWarranty ?? "",
+          });
         }
       }
     } catch (error) {
@@ -126,8 +143,9 @@ export default function EstimationSlip() {
         },
         jsPDF: {
           unit: "px",
-          format: [element.scrollWidth, element.scrollHeight],
-          orientation: element.scrollWidth > element.scrollHeight ? "landscape" : "portrait",
+          format: [element.scrollWidth, element.scrollHeight] as [number, number],
+          orientation:
+            element.scrollWidth > element.scrollHeight ? ("landscape" as const) : ("portrait" as const),
           compress: true,
         },
         pagebreak: { mode: ["css", "legacy"] },

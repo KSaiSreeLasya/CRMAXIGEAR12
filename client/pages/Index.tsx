@@ -215,7 +215,7 @@ export default function Index() {
               </p>
               <Link to="/projects">
                 <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
-                  View Projects
+                  View Sales
                 </Button>
               </Link>
             </div>
