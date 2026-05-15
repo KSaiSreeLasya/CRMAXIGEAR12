@@ -425,18 +425,32 @@ export default function CreateProjectModal({
             <p className="text-sm font-semibold text-muted-foreground pt-2 border-t border-border">
               Battery &amp; vehicle specifications
             </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-semibold mb-2">Battery warranty</label>
-                <input
-                  type="text"
-                  name="batteryWarranty"
-                  value={formData.batteryWarranty}
-                  onChange={handleChange}
-                  placeholder="e.g. 24 months"
-                  className="w-full px-4 py-2 border rounded-lg bg-background border-border focus:outline-none focus:ring-2 focus:ring-primary"
-                />
-              </div>
+           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+  {/* Battery Warranty */}
+  <div>
+    <label className="block text-sm font-semibold mb-2">
+      Battery warranty *
+    </label>
+
+    <input
+      type="text"
+      name="batteryWarranty"
+      value={formData.batteryWarranty}
+      onChange={handleChange}
+      placeholder="e.g. 24 months"
+      className={`w-full px-4 py-2 border rounded-lg bg-background transition-colors focus:outline-none focus:ring-2 focus:ring-primary ${
+        errors.batteryWarranty
+          ? "border-destructive"
+          : "border-border"
+      }`}
+    />
+
+    {errors.batteryWarranty && (
+      <p className="text-sm text-destructive mt-1">
+        {errors.batteryWarranty}
+      </p>
+    )}
+  </div>
               <div>
                 <label className="block text-sm font-semibold mb-2">Battery capacity</label>
                 <input
