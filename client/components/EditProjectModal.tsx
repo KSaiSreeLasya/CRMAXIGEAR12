@@ -39,6 +39,8 @@ export default function EditProjectModal({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isFetchingModelData, setIsFetchingModelData] = useState(false);
   const [modelLookupMessage, setModelLookupMessage] = useState("");
+  const [availableChassisNumbers, setAvailableChassisNumbers] = useState<string[]>([]);
+  const [showChassisDropdown, setShowChassisDropdown] = useState(false);
 
   useEffect(() => {
     if (project) {
@@ -151,54 +153,72 @@ export default function EditProjectModal({
 
   const handleModelLookup = async (modelNoInput?: string) => {
     const modelInput = (modelNoInput ?? formData.modelNo).trim();
-    if (!modelInput) return;
+    if (!modelInput) {
+      setAvailableChassisNumbers([]);
+      setShowChassisDropdown(false);
+      return;
+    }
     setIsFetchingModelData(true);
     setModelLookupMessage("");
     try {
-      let matched: any = null;
+      let chassisNumbers: string[] = [];
       if (supabase) {
         const { data, error } = await supabase
           .from("inventory_items")
-          .select("model_no,vehicle_model,hsn_no,chassis_no,motor_no,battery_no")
-          .order("created_at", { ascending: false })
-          .limit(200);
+          .select("chassis_no")
+          .or(
+            `model_no.ilike.%${modelInput}%,vehicle_model.ilike.%${modelInput}%`
+          );
         if (error) throw error;
-        matched =
-          data?.find(
-            (row: any) =>
-              (row.model_no || "").toLowerCase() === modelInput.toLowerCase() ||
-              (row.vehicle_model || "").toLowerCase() === modelInput.toLowerCase(),
-          ) || null;
+        const uniqueChassis = new Set<string>();
+        data?.forEach((row: any) => {
+          if (row.chassis_no) {
+            uniqueChassis.add(row.chassis_no);
+          }
+        });
+        chassisNumbers = Array.from(uniqueChassis).sort();
       } else {
         const raw = localStorage.getItem("crm_inventory_items");
         const list = raw ? JSON.parse(raw) : [];
-        matched =
-          list.find(
-            (row: any) =>
-              (row.modelNo || row.vehicleModel || "").toLowerCase() === modelInput.toLowerCase(),
-          ) || null;
+        const uniqueChassis = new Set<string>();
+        list.forEach((row: any) => {
+          if (
+            ((row.modelNo || "").toLowerCase().includes(modelInput.toLowerCase()) ||
+              (row.vehicleModel || "").toLowerCase().includes(modelInput.toLowerCase())) &&
+            row.chassisNo
+          ) {
+            uniqueChassis.add(row.chassisNo);
+          }
+        });
+        chassisNumbers = Array.from(uniqueChassis).sort();
       }
 
-      if (!matched) {
-        setModelLookupMessage("No inventory data found for this model number.");
+      if (chassisNumbers.length === 0) {
+        setModelLookupMessage("No chassis numbers found for this model in inventory.");
+        setAvailableChassisNumbers([]);
+        setShowChassisDropdown(false);
         return;
       }
 
-      setFormData((prev) => ({
-        ...prev,
-        productDescription: matched.vehicle_model || prev.productDescription,
-        hsnNo: matched.hsn_no || prev.hsnNo,
-        chassisNo: matched.chassis_no || prev.chassisNo,
-        motorNo: matched.motor_no || prev.motorNo,
-        batteryNo: matched.battery_no || prev.batteryNo,
-      }));
-      setModelLookupMessage("Fetched details from inventory.");
+      setAvailableChassisNumbers(chassisNumbers);
+      setShowChassisDropdown(true);
+      setModelLookupMessage(`Found ${chassisNumbers.length} chassis number(s) for this model. Please select one.`);
     } catch (error) {
       console.error("Error fetching model details from inventory:", error);
-      setModelLookupMessage("Failed to fetch model details.");
+      setModelLookupMessage("Failed to fetch chassis numbers.");
+      setAvailableChassisNumbers([]);
+      setShowChassisDropdown(false);
     } finally {
       setIsFetchingModelData(false);
     }
+  };
+
+  const handleChassisSelect = (chassisNo: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      chassisNo,
+    }));
+    setShowChassisDropdown(false);
   };
 
   if (!isOpen || !project) return null;
@@ -243,12 +263,31 @@ export default function EditProjectModal({
               />
               {errors.modelNo && <p className="text-sm text-destructive mt-1">{errors.modelNo}</p>}
               {isFetchingModelData && (
-                <p className="text-xs text-muted-foreground mt-1">Fetching details from inventory...</p>
+                <p className="text-xs text-muted-foreground mt-1">Fetching chassis numbers from inventory...</p>
               )}
               {!isFetchingModelData && modelLookupMessage && (
                 <p className="text-xs text-muted-foreground mt-1">{modelLookupMessage}</p>
               )}
             </div>
+
+            {/* Chassis Dropdown */}
+            {showChassisDropdown && availableChassisNumbers.length > 0 && (
+              <div>
+                <label className="block text-sm font-semibold mb-2">Select Chassis No. from inventory</label>
+                <div className="grid grid-cols-1 gap-2 max-h-48 overflow-y-auto border border-border rounded-lg p-3">
+                  {availableChassisNumbers.map((chassis) => (
+                    <button
+                      key={chassis}
+                      type="button"
+                      onClick={() => handleChassisSelect(chassis)}
+                      className="text-left px-3 py-2 rounded hover:bg-muted transition-colors border border-border"
+                    >
+                      {chassis}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Customer Name */}
             <div>
