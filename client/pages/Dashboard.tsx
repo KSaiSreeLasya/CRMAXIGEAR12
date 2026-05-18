@@ -1,5 +1,5 @@
 import Layout from "@/components/Layout";
-import { Briefcase, Calculator, CalendarCheck2, Boxes, ShieldCheck } from "lucide-react";
+import { Briefcase, CalendarCheck2, Boxes, ShieldCheck } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export default function Dashboard() {
@@ -27,23 +27,6 @@ export default function Dashboard() {
                   <h2 className="text-xl font-semibold">SALES</h2>
                   <p className="text-sm text-muted-foreground">
                     Manage account entries and invoices.
-                  </p>
-                </div>
-              </div>
-            </Link>
-
-            <Link
-              to="/accounts"
-              className="rounded-lg border border-border bg-card p-6 text-left hover:border-primary hover:shadow-md transition-all"
-            >
-              <div className="flex items-center gap-4">
-                <div className="rounded-md bg-muted p-3 text-muted-foreground">
-                  <Calculator className="h-6 w-6" />
-                </div>
-                <div>
-                  <h2 className="text-xl font-semibold">ESTIMATION COST</h2>
-                  <p className="text-sm text-muted-foreground">
-                    Create and manage estimation costs.
                   </p>
                 </div>
               </div>
