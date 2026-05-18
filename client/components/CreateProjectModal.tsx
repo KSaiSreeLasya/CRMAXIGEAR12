@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
 import type { Project } from "@/pages/Projects";
@@ -37,6 +37,15 @@ export default function CreateProjectModal({
   const [modelLookupMessage, setModelLookupMessage] = useState("");
   const [availableChassisNumbers, setAvailableChassisNumbers] = useState<string[]>([]);
   const [showChassisDropdown, setShowChassisDropdown] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      setErrors({});
+      setModelLookupMessage("");
+      setAvailableChassisNumbers([]);
+      setShowChassisDropdown(false);
+    }
+  }, [isOpen]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
