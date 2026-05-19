@@ -344,7 +344,6 @@ export default function Inventory() {
               part_name: payload.partName,
               price: payload.price,
               qty: payload.qty,
-              total: payload.total,
             })
             .eq("id", editingSpareId);
           if (error) throw error;
@@ -379,7 +378,6 @@ export default function Inventory() {
                   part_name: payload.partName,
                   price: payload.price,
                   qty: payload.qty,
-                  total: payload.total,
                 },
               ])
               .select()
