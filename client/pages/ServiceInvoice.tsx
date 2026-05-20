@@ -242,11 +242,6 @@ export default function ServiceInvoice() {
               throw new Error("User not authenticated");
             }
 
-            const selectedSpare = spares.find(s => s.partName === form.product);
-            if (selectedSpare && unit > selectedSpare.qty) {
-              throw new Error(`Insufficient inventory. Required: ${unit}, Available: ${selectedSpare.qty}`);
-            }
-
             const { data, error } = await supabase
               .from("service_invoices")
               .insert([
@@ -267,18 +262,6 @@ export default function ServiceInvoice() {
               .select()
               .single();
             if (error) throw error;
-
-            if (selectedSpare) {
-              const newQty = selectedSpare.qty - unit;
-              const { error: updateError } = await supabase
-                .from("spares_inventory")
-                .update({ qty: newQty })
-                .eq("id", selectedSpare.id);
-              if (updateError) console.warn("Error updating spare inventory:", updateError);
-              else {
-                await loadSpares();
-              }
-            }
 
             created = {
               id: data.id,
@@ -306,21 +289,8 @@ export default function ServiceInvoice() {
             setInvoices(updated);
             localStorage.setItem("crm_service_invoices", JSON.stringify(updated));
 
-            const selectedSpare = spares.find(s => s.partName === form.product);
-            if (selectedSpare && unit <= selectedSpare.qty) {
-              const updatedSpares = spares.map(s =>
-                s.id === selectedSpare.id ? { ...s, qty: s.qty - unit } : s
-              );
-              setSpares(updatedSpares);
-              localStorage.setItem("crm_spares", JSON.stringify(updatedSpares));
-            }
           }
         } else {
-          const selectedSpare = spares.find(s => s.partName === form.product);
-          if (selectedSpare && unit > selectedSpare.qty) {
-            throw new Error(`Insufficient inventory. Required: ${unit}, Available: ${selectedSpare.qty}`);
-          }
-
           created = {
             id: `service_invoice_${Date.now()}`,
             createdAt: new Date().toLocaleDateString(),
@@ -329,14 +299,6 @@ export default function ServiceInvoice() {
           const updated = [created, ...invoices];
           setInvoices(updated);
           localStorage.setItem("crm_service_invoices", JSON.stringify(updated));
-
-          if (selectedSpare) {
-            const updatedSpares = spares.map(s =>
-              s.id === selectedSpare.id ? { ...s, qty: s.qty - unit } : s
-            );
-            setSpares(updatedSpares);
-            localStorage.setItem("crm_spares", JSON.stringify(updatedSpares));
-          }
         }
       }
 
