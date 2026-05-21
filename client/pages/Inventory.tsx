@@ -248,54 +248,77 @@ export default function Inventory() {
         persistLocal(next);
       } else {
         if (supabase) {
-          const { data: userData } = await supabase.auth.getUser();
-          if (!userData.user?.id) {
+          let userId: string | undefined;
+
+          if (employeeSession) {
+            userId = employeeSession.employeeId;
+          } else {
+            try {
+              const { data: userData } = await supabase.auth.getUser();
+              userId = userData.user?.id;
+            } catch (err) {
+              console.warn("Could not fetch Supabase user:", err);
+            }
+          }
+
+          if (!userId) {
             throw new Error("User not authenticated");
           }
-          const { data, error } = await supabase
-            .from("inventory_items")
-            .insert([
-              {
-                user_id: userData.user.id,
-                sl_no: payload.slNo,
-                model_no: payload.modelNo || null,
-                brand: payload.brand || null,
-                vehicle_model: payload.vehicleModel || null,
-                hsn_no: payload.hsnNo || null,
-                vehicle_count: payload.vehicleCount,
-                chassis_no: payload.chassisNo || null,
-                motor_no: payload.motorNo || null,
-                battery_no: payload.batteryNo || null,
-                manufacturer_inv_no: payload.manufacturerInvNo || null,
-                battery_model: payload.batteryModel || null,
-                battery_count: payload.batteryCount,
-                sales_count: payload.salesCount,
-                closing_stock: payload.closingStock,
-              },
-            ])
-            .select()
-            .single();
-          if (error) throw error;
 
-          const created: InventoryItem = {
-            id: data.id,
-            slNo: data.sl_no,
-            modelNo: data.model_no || "",
-            brand: data.brand || "",
-            vehicleModel: data.vehicle_model || "",
-            hsnNo: data.hsn_no || "",
-            vehicleCount: data.vehicle_count || 0,
-            chassisNo: data.chassis_no || "",
-            motorNo: data.motor_no || "",
-            batteryNo: data.battery_no || "",
-            manufacturerInvNo: data.manufacturer_inv_no || "",
-            batteryModel: data.battery_model || "",
-            batteryCount: data.battery_count || 0,
-            salesCount: data.sales_count || 0,
-            closingStock: data.closing_stock || 0,
-            createdAt: new Date(data.created_at).toLocaleDateString(),
-          };
-          setItems((prev) => [...prev, created].sort((a, b) => a.slNo - b.slNo));
+          try {
+            const { data, error } = await supabase
+              .from("inventory_items")
+              .insert([
+                {
+                  user_id: userId,
+                  sl_no: payload.slNo,
+                  model_no: payload.modelNo || null,
+                  brand: payload.brand || null,
+                  vehicle_model: payload.vehicleModel || null,
+                  hsn_no: payload.hsnNo || null,
+                  vehicle_count: payload.vehicleCount,
+                  chassis_no: payload.chassisNo || null,
+                  motor_no: payload.motorNo || null,
+                  battery_no: payload.batteryNo || null,
+                  manufacturer_inv_no: payload.manufacturerInvNo || null,
+                  battery_model: payload.batteryModel || null,
+                  battery_count: payload.batteryCount,
+                  sales_count: payload.salesCount,
+                  closing_stock: payload.closingStock,
+                },
+              ])
+              .select()
+              .single();
+            if (error) throw error;
+
+            const created: InventoryItem = {
+              id: data.id,
+              slNo: data.sl_no,
+              modelNo: data.model_no || "",
+              brand: data.brand || "",
+              vehicleModel: data.vehicle_model || "",
+              hsnNo: data.hsn_no || "",
+              vehicleCount: data.vehicle_count || 0,
+              chassisNo: data.chassis_no || "",
+              motorNo: data.motor_no || "",
+              batteryNo: data.battery_no || "",
+              manufacturerInvNo: data.manufacturer_inv_no || "",
+              batteryModel: data.battery_model || "",
+              batteryCount: data.battery_count || 0,
+              salesCount: data.sales_count || 0,
+              closingStock: data.closing_stock || 0,
+              createdAt: new Date(data.created_at).toLocaleDateString(),
+            };
+            setItems((prev) => [...prev, created].sort((a, b) => a.slNo - b.slNo));
+          } catch (supabaseError: any) {
+            console.warn("Supabase insert failed, falling back to localStorage:", supabaseError?.message);
+            const created: InventoryItem = {
+              id: `inventory_${Date.now()}`,
+              createdAt: new Date().toLocaleDateString(),
+              ...payload,
+            };
+            persistLocal([...items, created].sort((a, b) => a.slNo - b.slNo));
+          }
         } else {
           const created: InventoryItem = {
             id: `inventory_${Date.now()}`,
@@ -359,7 +382,7 @@ export default function Inventory() {
     e.preventDefault();
     setIsSavingSpare(true);
     try {
-      const price = isAdmin ? Number(spareForm.price || 0) : 0;
+      const price = Number(spareForm.price || 0);
       const qty = Number(spareForm.qty || 0);
       const total = price * qty;
 
@@ -400,15 +423,28 @@ export default function Inventory() {
         let created: SpareItem;
         if (supabase) {
           try {
-            const { data: userData } = await supabase.auth.getUser();
-            if (!userData.user?.id) {
+            let userId: string | undefined;
+
+            if (employeeSession) {
+              userId = employeeSession.employeeId;
+            } else {
+              try {
+                const { data: userData } = await supabase.auth.getUser();
+                userId = userData.user?.id;
+              } catch (err) {
+                console.warn("Could not fetch Supabase user:", err);
+              }
+            }
+
+            if (!userId) {
               throw new Error("User not authenticated");
             }
+
             const { data, error } = await supabase
               .from("spares_inventory")
               .insert([
                 {
-                  user_id: userData.user.id,
+                  user_id: userId,
                   part_name: payload.partName,
                   price: payload.price,
                   qty: payload.qty,
@@ -633,7 +669,7 @@ export default function Inventory() {
               <h2 className="text-xl font-semibold mb-4">
                 {editingSpareId ? "Edit Spare Item" : "Add Spare Item"}
               </h2>
-              <form onSubmit={handleSaveSpare} className={`grid gap-4 ${isAdmin ? "grid-cols-1 md:grid-cols-5" : "grid-cols-1 md:grid-cols-2"}`}>
+              <form onSubmit={handleSaveSpare} className="grid gap-4 grid-cols-1 md:grid-cols-4">
                 <input
                   className="px-4 py-2 border border-border rounded-lg bg-background"
                   placeholder="Part Name"
@@ -641,17 +677,15 @@ export default function Inventory() {
                   onChange={(e) => setSpareForm((prev) => ({ ...prev, partName: e.target.value }))}
                   required
                 />
-                {isAdmin && (
-                  <input
-                    className="px-4 py-2 border border-border rounded-lg bg-background"
-                    placeholder="Price"
-                    type="number"
-                    step="0.01"
-                    value={spareForm.price}
-                    onChange={(e) => setSpareForm((prev) => ({ ...prev, price: e.target.value }))}
-                    required
-                  />
-                )}
+                <input
+                  className="px-4 py-2 border border-border rounded-lg bg-background"
+                  placeholder="Price"
+                  type="number"
+                  step="0.01"
+                  value={spareForm.price}
+                  onChange={(e) => setSpareForm((prev) => ({ ...prev, price: e.target.value }))}
+                  required
+                />
                 <input
                   className="px-4 py-2 border border-border rounded-lg bg-background"
                   placeholder="Quantity"
@@ -660,11 +694,9 @@ export default function Inventory() {
                   onChange={(e) => setSpareForm((prev) => ({ ...prev, qty: e.target.value }))}
                   required
                 />
-                {isAdmin && (
-                  <div className="px-4 py-2 border border-border rounded-lg bg-muted flex items-center">
-                    <span className="text-sm font-medium">Total: ₹{(parseFloat(spareForm.price) * parseInt(spareForm.qty) || 0).toFixed(2)}</span>
-                  </div>
-                )}
+                <div className="px-4 py-2 border border-border rounded-lg bg-muted flex items-center">
+                  <span className="text-sm font-medium">Total: ₹{(parseFloat(spareForm.price) * parseInt(spareForm.qty) || 0).toFixed(2)}</span>
+                </div>
                 <button
                   type="submit"
                   disabled={isSavingSpare}
@@ -695,45 +727,43 @@ export default function Inventory() {
                 <p className="text-muted-foreground">No spares yet.</p>
               ) : (
                 <div className="overflow-x-auto">
-                  <table className={`w-full text-sm ${isAdmin ? "min-w-[800px]" : "min-w-[600px]"}`}>
+                  <table className="w-full text-sm min-w-[800px]">
                     <thead>
                       <tr className="border-b border-border">
                         <th className="px-4 py-2 text-left">Part Name</th>
-                        {isAdmin && <th className="px-4 py-2 text-right">Price</th>}
+                        <th className="px-4 py-2 text-right">Price</th>
                         <th className="px-4 py-2 text-right">Quantity</th>
-                        {isAdmin && <th className="px-4 py-2 text-right">Total</th>}
-                        {isAdmin && <th className="px-4 py-2 text-left">Action</th>}
+                        <th className="px-4 py-2 text-right">Total</th>
+                        <th className="px-4 py-2 text-left">Action</th>
                       </tr>
                     </thead>
                     <tbody>
                       {spares.map((spare) => (
                         <tr key={spare.id} className="border-b border-border">
                           <td className="px-4 py-2">{spare.partName}</td>
-                          {isAdmin && <td className="px-4 py-2 text-right font-semibold">₹{spare.price.toFixed(2)}</td>}
+                          <td className="px-4 py-2 text-right font-semibold">₹{spare.price.toFixed(2)}</td>
                           <td className="px-4 py-2 text-right">{spare.qty}</td>
-                          {isAdmin && <td className="px-4 py-2 text-right font-semibold">₹{spare.total.toFixed(2)}</td>}
-                          {isAdmin && (
-                            <td className="px-4 py-2">
-                              <div className="flex items-center gap-3">
-                                <button
-                                  type="button"
-                                  onClick={() => handleEditSpare(spare)}
-                                  className="inline-flex items-center gap-1 text-primary hover:text-primary/90"
-                                >
-                                  <Edit className="w-4 h-4" />
-                                  Edit
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => void handleDeleteSpare(spare.id)}
-                                  className="inline-flex items-center gap-1 text-destructive hover:text-destructive/90"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                  Delete
-                                </button>
-                              </div>
-                            </td>
-                          )}
+                          <td className="px-4 py-2 text-right font-semibold">₹{spare.total.toFixed(2)}</td>
+                          <td className="px-4 py-2">
+                            <div className="flex items-center gap-3">
+                              <button
+                                type="button"
+                                onClick={() => handleEditSpare(spare)}
+                                className="inline-flex items-center gap-1 text-primary hover:text-primary/90"
+                              >
+                                <Edit className="w-4 h-4" />
+                                Edit
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => void handleDeleteSpare(spare.id)}
+                                className="inline-flex items-center gap-1 text-destructive hover:text-destructive/90"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                                Delete
+                              </button>
+                            </div>
+                          </td>
                         </tr>
                       ))}
                     </tbody>
