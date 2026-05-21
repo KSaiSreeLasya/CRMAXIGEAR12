@@ -669,7 +669,7 @@ export default function Inventory() {
               <h2 className="text-xl font-semibold mb-4">
                 {editingSpareId ? "Edit Spare Item" : "Add Spare Item"}
               </h2>
-              <form onSubmit={handleSaveSpare} className={`grid gap-4 ${isAdmin ? "grid-cols-1 md:grid-cols-5" : "grid-cols-1 md:grid-cols-2"}`}>
+              <form onSubmit={handleSaveSpare} className="grid gap-4 grid-cols-1 md:grid-cols-4">
                 <input
                   className="px-4 py-2 border border-border rounded-lg bg-background"
                   placeholder="Part Name"
@@ -677,17 +677,15 @@ export default function Inventory() {
                   onChange={(e) => setSpareForm((prev) => ({ ...prev, partName: e.target.value }))}
                   required
                 />
-                {isAdmin && (
-                  <input
-                    className="px-4 py-2 border border-border rounded-lg bg-background"
-                    placeholder="Price"
-                    type="number"
-                    step="0.01"
-                    value={spareForm.price}
-                    onChange={(e) => setSpareForm((prev) => ({ ...prev, price: e.target.value }))}
-                    required
-                  />
-                )}
+                <input
+                  className="px-4 py-2 border border-border rounded-lg bg-background"
+                  placeholder="Price"
+                  type="number"
+                  step="0.01"
+                  value={spareForm.price}
+                  onChange={(e) => setSpareForm((prev) => ({ ...prev, price: e.target.value }))}
+                  required
+                />
                 <input
                   className="px-4 py-2 border border-border rounded-lg bg-background"
                   placeholder="Quantity"
@@ -696,11 +694,9 @@ export default function Inventory() {
                   onChange={(e) => setSpareForm((prev) => ({ ...prev, qty: e.target.value }))}
                   required
                 />
-                {isAdmin && (
-                  <div className="px-4 py-2 border border-border rounded-lg bg-muted flex items-center">
-                    <span className="text-sm font-medium">Total: ₹{(parseFloat(spareForm.price) * parseInt(spareForm.qty) || 0).toFixed(2)}</span>
-                  </div>
-                )}
+                <div className="px-4 py-2 border border-border rounded-lg bg-muted flex items-center">
+                  <span className="text-sm font-medium">Total: ₹{(parseFloat(spareForm.price) * parseInt(spareForm.qty) || 0).toFixed(2)}</span>
+                </div>
                 <button
                   type="submit"
                   disabled={isSavingSpare}
@@ -731,13 +727,13 @@ export default function Inventory() {
                 <p className="text-muted-foreground">No spares yet.</p>
               ) : (
                 <div className="overflow-x-auto">
-                  <table className={`w-full text-sm ${isAdmin ? "min-w-[800px]" : "min-w-[600px]"}`}>
+                  <table className="w-full text-sm min-w-[800px]">
                     <thead>
                       <tr className="border-b border-border">
                         <th className="px-4 py-2 text-left">Part Name</th>
-                        {isAdmin && <th className="px-4 py-2 text-right">Price</th>}
+                        <th className="px-4 py-2 text-right">Price</th>
                         <th className="px-4 py-2 text-right">Quantity</th>
-                        {isAdmin && <th className="px-4 py-2 text-right">Total</th>}
+                        <th className="px-4 py-2 text-right">Total</th>
                         {isAdmin && <th className="px-4 py-2 text-left">Action</th>}
                       </tr>
                     </thead>
@@ -745,9 +741,9 @@ export default function Inventory() {
                       {spares.map((spare) => (
                         <tr key={spare.id} className="border-b border-border">
                           <td className="px-4 py-2">{spare.partName}</td>
-                          {isAdmin && <td className="px-4 py-2 text-right font-semibold">₹{spare.price.toFixed(2)}</td>}
+                          <td className="px-4 py-2 text-right font-semibold">₹{spare.price.toFixed(2)}</td>
                           <td className="px-4 py-2 text-right">{spare.qty}</td>
-                          {isAdmin && <td className="px-4 py-2 text-right font-semibold">₹{spare.total.toFixed(2)}</td>}
+                          <td className="px-4 py-2 text-right font-semibold">₹{spare.total.toFixed(2)}</td>
                           {isAdmin && (
                             <td className="px-4 py-2">
                               <div className="flex items-center gap-3">
