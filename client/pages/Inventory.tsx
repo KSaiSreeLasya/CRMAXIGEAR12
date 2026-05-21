@@ -382,7 +382,7 @@ export default function Inventory() {
     e.preventDefault();
     setIsSavingSpare(true);
     try {
-      const price = isAdmin ? Number(spareForm.price || 0) : 0;
+      const price = Number(spareForm.price || 0);
       const qty = Number(spareForm.qty || 0);
       const total = price * qty;
 
