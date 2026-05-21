@@ -24,6 +24,9 @@ interface ServiceInvoiceRecord {
   invoiceDate: string;
   products: ProductRow[];
   total: number;
+  labourCharges: number;
+  gstEnabled: boolean;
+  gstAmount: number;
   createdAt: string;
 }
 
@@ -44,14 +47,29 @@ const DEFAULT_PRODUCT_ROW: ProductRow = {
   unit: 1,
 };
 
-const DEFAULT_FORM = {
+interface InvoiceForm {
+  serviceInvoiceNo: string;
+  customerName: string;
+  contactNo: string;
+  location: string;
+  invoiceDate: string;
+  labourCharges: number;
+  gstEnabled: boolean;
+  products: ProductRow[];
+}
+
+const createDefaultForm = (): InvoiceForm => ({
   serviceInvoiceNo: "",
   customerName: "",
   contactNo: "",
   location: "",
   invoiceDate: "",
+  labourCharges: 0,
+  gstEnabled: true,
   products: [{ ...DEFAULT_PRODUCT_ROW, id: `product_${Date.now()}` }],
-};
+});
+
+const DEFAULT_FORM = createDefaultForm();
 
 function getNextServiceInvoiceNumber(): string {
   const defaultInvoiceNo = "SRV/2026-27/001";
@@ -93,7 +111,7 @@ export default function ServiceInvoice() {
   const navigate = useNavigate();
   const [invoices, setInvoices] = useState<ServiceInvoiceRecord[]>([]);
   const [spares, setSpares] = useState<SpareItem[]>([]);
-  const [form, setForm] = useState(DEFAULT_FORM);
+  const [form, setForm] = useState<InvoiceForm>(DEFAULT_FORM);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingSpares, setIsLoadingSpares] = useState(false);
@@ -132,6 +150,9 @@ export default function ServiceInvoice() {
               location: row.location || "",
               invoiceDate: row.invoice_date || "",
               products: row.products || [],
+              labourCharges: row.labour_charges || 0,
+              gstEnabled: row.gst_enabled !== false,
+              gstAmount: row.gst_amount || 0,
               total: row.total || 0,
               createdAt: new Date(row.created_at).toLocaleDateString(),
             })) || [];
@@ -144,23 +165,18 @@ export default function ServiceInvoice() {
       const raw = localStorage.getItem("crm_service_invoices");
       if (raw) {
         const parsed = JSON.parse(raw) as any[];
-        const converted = parsed.map((inv: any) => {
-          if (Array.isArray(inv.products)) {
-            return inv;
-          }
-          if (inv.product) {
-            return {
-              ...inv,
-              products: [{
-                product: inv.product || "",
-                productDescription: inv.productDescription || "",
-                amount: inv.amount || 0,
-                unit: inv.unit || 1,
-              }],
-            };
-          }
-          return { ...inv, products: [] };
-        });
+        const converted = parsed.map((inv: any) => ({
+          ...inv,
+          labourCharges: inv.labourCharges || 0,
+          gstEnabled: inv.gstEnabled !== false,
+          gstAmount: inv.gstAmount || 0,
+          products: Array.isArray(inv.products) ? inv.products : (inv.product ? [{
+            product: inv.product || "",
+            productDescription: inv.productDescription || "",
+            amount: inv.amount || 0,
+            unit: inv.unit || 1,
+          }] : []),
+        }));
         setInvoices(converted);
       }
     } catch (error) {
@@ -208,8 +224,20 @@ export default function ServiceInvoice() {
     }
   };
 
-  const calculateTotal = (products: ProductRow[]) => {
+  const calculateSubtotal = (products: ProductRow[] | undefined) => {
     return (products || []).reduce((sum, p) => sum + ((p.amount || 0) * (p.unit || 1)), 0);
+  };
+
+  const calculateTotal = (products: ProductRow[] | undefined, labourCharges: number | undefined = 0, gstEnabled: boolean | undefined = true) => {
+    const subtotal = calculateSubtotal(products);
+    const labour = labourCharges || 0;
+    const subtotalWithLabour = subtotal + labour;
+    const gstEnabledSafe = gstEnabled !== false;
+    if (gstEnabledSafe) {
+      const gst = subtotalWithLabour * 0.05;
+      return subtotalWithLabour + gst;
+    }
+    return subtotalWithLabour;
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -222,7 +250,11 @@ export default function ServiceInvoice() {
         return;
       }
 
-      const total = calculateTotal(form.products);
+      const subtotal = calculateSubtotal(form.products);
+      const subtotalWithLabour = subtotal + form.labourCharges;
+      const gstAmount = form.gstEnabled ? subtotalWithLabour * 0.05 : 0;
+      const total = subtotalWithLabour + gstAmount;
+
       const productsPayload = form.products.map(p => ({
         product: p.product.trim(),
         productDescription: p.productDescription.trim(),
@@ -236,6 +268,9 @@ export default function ServiceInvoice() {
         location: form.location.trim(),
         invoiceDate: form.invoiceDate || new Date().toISOString().split('T')[0],
         products: productsPayload,
+        labourCharges: form.labourCharges,
+        gstEnabled: form.gstEnabled,
+        gstAmount,
         total,
       };
 
@@ -250,6 +285,9 @@ export default function ServiceInvoice() {
               location: payload.location,
               invoice_date: payload.invoiceDate,
               products: payload.products,
+              labour_charges: payload.labourCharges,
+              gst_enabled: payload.gstEnabled,
+              gst_amount: payload.gstAmount,
               total: payload.total,
             })
             .eq("id", editingId);
@@ -266,6 +304,9 @@ export default function ServiceInvoice() {
                 location: payload.location,
                 invoiceDate: payload.invoiceDate,
                 products: productsPayload,
+                labourCharges: payload.labourCharges,
+                gstEnabled: payload.gstEnabled,
+                gstAmount: payload.gstAmount,
                 total: payload.total,
               }
             : item
@@ -292,6 +333,9 @@ export default function ServiceInvoice() {
                   location: payload.location,
                   invoice_date: payload.invoiceDate,
                   products: payload.products,
+                  labour_charges: payload.labourCharges,
+                  gst_enabled: payload.gstEnabled,
+                  gst_amount: payload.gstAmount,
                   total: payload.total,
                 },
               ])
@@ -307,6 +351,9 @@ export default function ServiceInvoice() {
               location: data.location,
               invoiceDate: data.invoice_date,
               products: productsPayload,
+              labourCharges: data.labour_charges || 0,
+              gstEnabled: data.gst_enabled !== false,
+              gstAmount: data.gst_amount || 0,
               total: data.total,
               createdAt: new Date(data.created_at).toLocaleDateString(),
             };
@@ -321,6 +368,9 @@ export default function ServiceInvoice() {
               location: payload.location,
               invoiceDate: payload.invoiceDate,
               products: productsPayload,
+              labourCharges: payload.labourCharges,
+              gstEnabled: payload.gstEnabled,
+              gstAmount: payload.gstAmount,
               total: payload.total,
               createdAt: new Date().toLocaleDateString(),
             };
@@ -338,6 +388,9 @@ export default function ServiceInvoice() {
             location: payload.location,
             invoiceDate: payload.invoiceDate,
             products: productsPayload,
+            labourCharges: payload.labourCharges,
+            gstEnabled: payload.gstEnabled,
+            gstAmount: payload.gstAmount,
             total: payload.total,
             createdAt: new Date().toLocaleDateString(),
           };
@@ -347,7 +400,7 @@ export default function ServiceInvoice() {
         }
       }
 
-      setForm(DEFAULT_FORM);
+      setForm(createDefaultForm());
       setEditingId(null);
     } catch (error: any) {
       console.error("Error saving service invoice:", error);
@@ -385,6 +438,8 @@ export default function ServiceInvoice() {
       contactNo: item.contactNo,
       location: item.location,
       invoiceDate: item.invoiceDate,
+      labourCharges: item.labourCharges,
+      gstEnabled: item.gstEnabled,
       products: item.products.map(p => ({
         id: `product_${Date.now()}_${Math.random()}`,
         product: p.product,
@@ -398,7 +453,7 @@ export default function ServiceInvoice() {
 
   const cancelEdit = () => {
     setEditingId(null);
-    setForm(DEFAULT_FORM);
+    setForm(createDefaultForm());
   };
 
   const handleDownloadPDF = (invoice: ServiceInvoiceRecord) => {
@@ -495,6 +550,27 @@ export default function ServiceInvoice() {
                 onChange={(e) => setForm((prev) => ({ ...prev, invoiceDate: e.target.value }))}
                 required
               />
+              <input
+                className="px-4 py-2 border border-border rounded-lg bg-background"
+                placeholder="Labour Charges"
+                type="number"
+                step="0.01"
+                value={form.labourCharges}
+                onChange={(e) => setForm((prev) => ({ ...prev, labourCharges: Number(e.target.value) }))}
+              />
+            </div>
+
+            {/* GST Toggle */}
+            <div className="flex items-center gap-3">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={form.gstEnabled}
+                  onChange={(e) => setForm((prev) => ({ ...prev, gstEnabled: e.target.checked }))}
+                  className="w-4 h-4 rounded border border-border"
+                />
+                <span className="text-sm font-medium">Enable GST (5%)</span>
+              </label>
             </div>
 
             {/* Products Section */}
@@ -624,10 +700,26 @@ export default function ServiceInvoice() {
               </div>
             </div>
 
-            {/* Total */}
-            <div className="bg-primary/10 rounded-lg p-4 flex justify-between items-center">
-              <span className="font-semibold text-lg">Invoice Total:</span>
-              <span className="text-2xl font-bold text-primary">₹{calculateTotal(form.products).toFixed(2)}</span>
+            {/* Total Breakdown */}
+            <div className="bg-muted rounded-lg p-4 space-y-2">
+              <div className="flex justify-between items-center text-sm">
+                <span>Product Total:</span>
+                <span>₹{(calculateSubtotal(form.products) || 0).toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between items-center text-sm">
+                <span>Labour Charges:</span>
+                <span>₹{((form.labourCharges || 0)).toFixed(2)}</span>
+              </div>
+              {form.gstEnabled && (
+                <div className="flex justify-between items-center text-sm border-t border-border pt-2">
+                  <span>GST (5%):</span>
+                  <span>₹{(((calculateSubtotal(form.products) || 0) + (form.labourCharges || 0)) * 0.05).toFixed(2)}</span>
+                </div>
+              )}
+              <div className="bg-primary/10 rounded-lg p-3 flex justify-between items-center border border-primary/20 mt-2">
+                <span className="font-semibold text-lg">Invoice Total:</span>
+                <span className="text-2xl font-bold text-primary">₹{(calculateTotal(form.products, form.labourCharges, form.gstEnabled) || 0).toFixed(2)}</span>
+              </div>
             </div>
 
             {/* Submit Buttons */}
