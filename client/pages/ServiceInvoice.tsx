@@ -47,7 +47,18 @@ const DEFAULT_PRODUCT_ROW: ProductRow = {
   unit: 1,
 };
 
-const DEFAULT_FORM = {
+interface InvoiceForm {
+  serviceInvoiceNo: string;
+  customerName: string;
+  contactNo: string;
+  location: string;
+  invoiceDate: string;
+  labourCharges: number;
+  gstEnabled: boolean;
+  products: ProductRow[];
+}
+
+const createDefaultForm = (): InvoiceForm => ({
   serviceInvoiceNo: "",
   customerName: "",
   contactNo: "",
@@ -56,7 +67,9 @@ const DEFAULT_FORM = {
   labourCharges: 0,
   gstEnabled: true,
   products: [{ ...DEFAULT_PRODUCT_ROW, id: `product_${Date.now()}` }],
-};
+});
+
+const DEFAULT_FORM = createDefaultForm();
 
 function getNextServiceInvoiceNumber(): string {
   const defaultInvoiceNo = "SRV/2026-27/001";
@@ -98,7 +111,7 @@ export default function ServiceInvoice() {
   const navigate = useNavigate();
   const [invoices, setInvoices] = useState<ServiceInvoiceRecord[]>([]);
   const [spares, setSpares] = useState<SpareItem[]>([]);
-  const [form, setForm] = useState(DEFAULT_FORM);
+  const [form, setForm] = useState<InvoiceForm>(DEFAULT_FORM);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingSpares, setIsLoadingSpares] = useState(false);
@@ -211,14 +224,16 @@ export default function ServiceInvoice() {
     }
   };
 
-  const calculateSubtotal = (products: ProductRow[]) => {
+  const calculateSubtotal = (products: ProductRow[] | undefined) => {
     return (products || []).reduce((sum, p) => sum + ((p.amount || 0) * (p.unit || 1)), 0);
   };
 
-  const calculateTotal = (products: ProductRow[], labourCharges: number = 0, gstEnabled: boolean = true) => {
+  const calculateTotal = (products: ProductRow[] | undefined, labourCharges: number | undefined = 0, gstEnabled: boolean | undefined = true) => {
     const subtotal = calculateSubtotal(products);
-    const subtotalWithLabour = subtotal + labourCharges;
-    if (gstEnabled) {
+    const labour = labourCharges || 0;
+    const subtotalWithLabour = subtotal + labour;
+    const gstEnabledSafe = gstEnabled !== false;
+    if (gstEnabledSafe) {
       const gst = subtotalWithLabour * 0.05;
       return subtotalWithLabour + gst;
     }
@@ -385,7 +400,7 @@ export default function ServiceInvoice() {
         }
       }
 
-      setForm(DEFAULT_FORM);
+      setForm(createDefaultForm());
       setEditingId(null);
     } catch (error: any) {
       console.error("Error saving service invoice:", error);
@@ -438,7 +453,7 @@ export default function ServiceInvoice() {
 
   const cancelEdit = () => {
     setEditingId(null);
-    setForm(DEFAULT_FORM);
+    setForm(createDefaultForm());
   };
 
   const handleDownloadPDF = (invoice: ServiceInvoiceRecord) => {
@@ -689,21 +704,21 @@ export default function ServiceInvoice() {
             <div className="bg-muted rounded-lg p-4 space-y-2">
               <div className="flex justify-between items-center text-sm">
                 <span>Product Total:</span>
-                <span>₹{calculateSubtotal(form.products).toFixed(2)}</span>
+                <span>₹{(calculateSubtotal(form.products) || 0).toFixed(2)}</span>
               </div>
               <div className="flex justify-between items-center text-sm">
                 <span>Labour Charges:</span>
-                <span>₹{form.labourCharges.toFixed(2)}</span>
+                <span>₹{((form.labourCharges || 0)).toFixed(2)}</span>
               </div>
               {form.gstEnabled && (
                 <div className="flex justify-between items-center text-sm border-t border-border pt-2">
                   <span>GST (5%):</span>
-                  <span>₹{((calculateSubtotal(form.products) + form.labourCharges) * 0.05).toFixed(2)}</span>
+                  <span>₹{(((calculateSubtotal(form.products) || 0) + (form.labourCharges || 0)) * 0.05).toFixed(2)}</span>
                 </div>
               )}
               <div className="bg-primary/10 rounded-lg p-3 flex justify-between items-center border border-primary/20 mt-2">
                 <span className="font-semibold text-lg">Invoice Total:</span>
-                <span className="text-2xl font-bold text-primary">₹{calculateTotal(form.products, form.labourCharges, form.gstEnabled).toFixed(2)}</span>
+                <span className="text-2xl font-bold text-primary">₹{(calculateTotal(form.products, form.labourCharges, form.gstEnabled) || 0).toFixed(2)}</span>
               </div>
             </div>
 
