@@ -1,5 +1,5 @@
 import { jsPDF } from "jspdf";
-import "jspdf-autotable";
+import autoTable from "jspdf-autotable";
 
 interface SpareItem {
   id: string;
@@ -78,7 +78,7 @@ export const exportToPDF = (spares: SpareItem[], filename = "spares_inventory.pd
     spare.createdAt,
   ]);
 
-  (doc as any).autoTable({
+  autoTable(doc, {
     head: [["Part Name", "Price", "Quantity", "Total", "Created At"]],
     body: tableData,
     startY: 35,
@@ -95,7 +95,7 @@ export const exportToPDF = (spares: SpareItem[], filename = "spares_inventory.pd
   });
 
   const totalPrice = spares.reduce((sum, spare) => sum + spare.total, 0);
-  const finalY = (doc as any).autoTable.previous?.finalY || 35;
+  const finalY = (doc as any).lastAutoTable.finalY || 35;
   doc.setFontSize(10);
   doc.text(`Total Inventory Value: ₹${totalPrice.toFixed(2)}`, 14, finalY + 15);
 
