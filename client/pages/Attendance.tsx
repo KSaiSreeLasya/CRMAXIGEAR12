@@ -189,22 +189,38 @@ export default function Attendance() {
   const loadEmployees = async () => {
     try {
       if (supabase) {
-        const { data, error } = await supabase
-          .from("employees")
-          .select("*")
-          .order("created_at", { ascending: false });
-        if (error) throw error;
-        const rows: Employee[] =
-          data?.map((row: any) => ({
-            id: row.id,
-            fullName: row.full_name,
-            email: row.email || "",
-            phone: row.phone || "",
-            role: row.role || "",
-            isActive: row.is_active ?? true,
-          })) || [];
-        setEmployees(rows);
-        return;
+        try {
+          const { data: userData } = await supabase.auth.getUser();
+          if (!userData.user?.id) {
+            console.warn("No authenticated user found, checking local storage");
+            const raw = localStorage.getItem("crm_employees");
+            if (raw) setEmployees(JSON.parse(raw));
+            return;
+          }
+
+          const { data, error } = await supabase
+            .from("employees")
+            .select("*")
+            .order("created_at", { ascending: false });
+          if (error) throw error;
+          const rows: Employee[] =
+            data?.map((row: any) => ({
+              id: row.id,
+              fullName: row.full_name,
+              email: row.email || "",
+              phone: row.phone || "",
+              role: row.role || "",
+              isActive: row.is_active ?? true,
+            })) || [];
+          setEmployees(rows);
+          console.log(`Loaded ${rows.length} employees from Supabase`);
+          return;
+        } catch (supabaseError) {
+          console.error("Supabase error loading employees, falling back to localStorage:", supabaseError);
+          const raw = localStorage.getItem("crm_employees");
+          if (raw) setEmployees(JSON.parse(raw));
+          return;
+        }
       }
       const raw = localStorage.getItem("crm_employees");
       if (raw) setEmployees(JSON.parse(raw));
@@ -382,7 +398,10 @@ export default function Attendance() {
   };
 
   useEffect(() => {
-    void loadEmployees();
+    const load = async () => {
+      await loadEmployees();
+    };
+    void load();
   }, []);
 
   useEffect(() => {
@@ -761,9 +780,11 @@ export default function Attendance() {
                     onChange={(e) => setEmployeeId(e.target.value)}
                     required
                   >
-                    <option value="">Select employee</option>
+                    <option value="">
+                      {employees.length === 0 ? "No employees found" : "Select employee"}
+                    </option>
                     {employees.map((e) => (
-                      <option key={e.id} value={e.id} disabled={!e.isActive}>
+                      <option key={e.id} value={e.id}>
                         {e.fullName}
                         {!e.isActive ? " (inactive)" : ""}
                       </option>
