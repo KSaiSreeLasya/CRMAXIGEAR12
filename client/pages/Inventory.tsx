@@ -6,6 +6,7 @@ import { ArrowLeft, Trash2, Plus, Edit } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 import { getEmployeeSession, isAdminUser } from "@/lib/auth";
+import { SpareImportExport } from "@/components/SpareImportExport";
 
 interface InventoryItem {
   id: string;
@@ -540,6 +541,90 @@ export default function Inventory() {
     setSpareForm(DEFAULT_SPARE_FORM);
   };
 
+  const handleImportSpares = async (importedItems: Partial<SpareItem>[]) => {
+    try {
+      let userId: string | undefined;
+
+      if (employeeSession) {
+        userId = employeeSession.employeeId;
+      } else {
+        try {
+          const { data: userData } = await supabase.auth.getUser();
+          userId = userData.user?.id;
+        } catch (err) {
+          console.warn("Could not fetch Supabase user:", err);
+        }
+      }
+
+      if (!userId && supabase) {
+        throw new Error("User not authenticated");
+      }
+
+      const newSpares: SpareItem[] = [];
+      const sparesToInsert = importedItems.map((item) => ({
+        user_id: userId,
+        part_name: item.partName,
+        price: item.price,
+        qty: item.qty,
+      }));
+
+      if (supabase) {
+        try {
+          const { data, error } = await supabase
+            .from("spares_inventory")
+            .insert(sparesToInsert)
+            .select();
+
+          if (error) throw error;
+
+          data?.forEach((row: any) => {
+            newSpares.push({
+              id: row.id,
+              partName: row.part_name,
+              price: row.price,
+              qty: row.qty,
+              total: row.price * row.qty,
+              createdAt: new Date(row.created_at).toLocaleDateString(),
+            });
+          });
+        } catch (supabaseError: any) {
+          console.warn("Supabase insert failed, using localStorage:", supabaseError?.message);
+          importedItems.forEach((item) => {
+            const spare: SpareItem = {
+              id: `spare_${Date.now()}_${Math.random()}`,
+              partName: item.partName || "",
+              price: item.price || 0,
+              qty: item.qty || 0,
+              total: (item.price || 0) * (item.qty || 0),
+              createdAt: new Date().toLocaleDateString(),
+            };
+            newSpares.push(spare);
+          });
+        }
+      } else {
+        importedItems.forEach((item) => {
+          const spare: SpareItem = {
+            id: `spare_${Date.now()}_${Math.random()}`,
+            partName: item.partName || "",
+            price: item.price || 0,
+            qty: item.qty || 0,
+            total: (item.price || 0) * (item.qty || 0),
+            createdAt: new Date().toLocaleDateString(),
+          };
+          newSpares.push(spare);
+        });
+      }
+
+      const updated = [...newSpares, ...spares];
+      setSpares(updated);
+      localStorage.setItem("crm_spares_inventory", JSON.stringify(updated));
+      alert(`Successfully imported ${newSpares.length} spare(s)`);
+    } catch (error: any) {
+      console.error("Error importing spares:", error);
+      throw error;
+    }
+  };
+
 
   return (
     <Layout>
@@ -674,6 +759,13 @@ export default function Inventory() {
 
           {/* Spares Inventory Tab */}
           <TabsContent value="spares" className="space-y-6">
+            <div className="bg-card rounded-lg border border-border p-6">
+              <div className="mb-4">
+                <h2 className="text-xl font-semibold mb-4">Import/Export Spares</h2>
+                <SpareImportExport spares={spares} onImport={handleImportSpares} />
+              </div>
+            </div>
+
             <div className="bg-card rounded-lg border border-border p-6">
               <h2 className="text-xl font-semibold mb-4">
                 {editingSpareId ? "Edit Spare Item" : "Add Spare Item"}
