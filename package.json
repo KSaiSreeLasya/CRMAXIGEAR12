@@ -17,6 +17,8 @@
     "dotenv": "^17.2.1",
     "express": "^5.1.0",
     "html2pdf.js": "^0.14.0",
+    "jspdf": "^4.2.1",
+    "jspdf-autotable": "^5.0.8",
     "zod": "^3.25.76"
   },
   "devDependencies": {
