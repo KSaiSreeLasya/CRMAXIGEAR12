@@ -124,25 +124,39 @@ export default function AdminEmployees() {
         persistLocalEmployees(next);
       } else {
         if (supabase) {
-          const { data, error } = await supabase.rpc("create_employee", {
-            p_full_name: form.fullName.trim(),
-            p_email: form.email.trim().toLowerCase(),
-            p_password: form.password.trim(),
-            p_phone: form.phone.trim() || null,
-            p_role: form.role.trim() || null,
+          // Use server endpoint to avoid auth issues with RPC
+          const response = await fetch("/api/admin/setup-employee", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              fullName: form.fullName.trim(),
+              email: form.email.trim().toLowerCase(),
+              password: form.password.trim(),
+              role: form.role.trim() || "Employee",
+            }),
           });
-          if (error) throw error;
-          const row = data?.[0];
-          if (!row) throw new Error("Employee was not created.");
 
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || "Failed to create employee");
+          }
+
+          const data = await response.json();
+          if (!data.success || !data.employee) {
+            throw new Error("Employee was not created.");
+          }
+
+          const row = data.employee;
           const created: Employee = {
             id: row.id,
-            fullName: row.full_name,
+            fullName: row.fullName,
             email: row.email || "",
             phone: row.phone || "",
             role: row.role || "",
-            isActive: row.is_active ?? true,
-            createdAt: new Date(row.created_at).toLocaleDateString(),
+            isActive: true,
+            createdAt: row.createdAt
+              ? new Date(row.createdAt).toLocaleDateString()
+              : new Date().toLocaleDateString(),
           };
           setEmployees((prev) => [created, ...prev]);
         } else {
