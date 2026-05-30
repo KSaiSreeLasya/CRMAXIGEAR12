@@ -94,6 +94,8 @@ export default function Invoice() {
               vehicleWarranty: data.vehicle_warranty || "",
               invoiceDate: data.invoice_date || "",
               amount: data.amount,
+              modeOfPayment: data.mode_of_payment || "Cash",
+              leadSource: data.lead_source || "",
               createdAt: new Date(data.created_at).toLocaleDateString(),
             };
             setProject(project);
@@ -115,6 +117,8 @@ export default function Invoice() {
             batteryWarranty: foundProject.batteryWarranty ?? "",
             batteryCapacity: foundProject.batteryCapacity ?? "",
             vehicleWarranty: foundProject.vehicleWarranty ?? "",
+            modeOfPayment: foundProject.modeOfPayment ?? "Cash",
+            leadSource: foundProject.leadSource ?? "",
           });
         }
       }

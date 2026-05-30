@@ -16,6 +16,8 @@ interface EstimationRecord {
   estimationDate: string;
   model: string;
   amount: number;
+  modeOfPayment: string;
+  leadSource: string;
   createdAt: string;
 }
 
@@ -26,6 +28,8 @@ const DEFAULT_ESTIMATION_FORM = {
   estimationDate: "",
   model: "",
   amount: "",
+  modeOfPayment: "Cash",
+  leadSource: "",
 };
 
 export interface Project {
@@ -44,6 +48,8 @@ export interface Project {
   vehicleWarranty: string;
   invoiceDate: string;
   amount: number;
+  modeOfPayment: string;
+  leadSource: string;
   createdAt: string;
 }
 
@@ -94,6 +100,8 @@ export default function Projects() {
             vehicleWarranty: project.vehicle_warranty || "",
             invoiceDate: project.invoice_date || "",
             amount: project.amount,
+            modeOfPayment: project.mode_of_payment || "Cash",
+            leadSource: project.lead_source || "",
             createdAt: new Date(project.created_at).toLocaleDateString(),
           })) || [];
 
@@ -115,6 +123,8 @@ export default function Projects() {
             batteryWarranty: p.batteryWarranty ?? "",
             batteryCapacity: p.batteryCapacity ?? "",
             vehicleWarranty: p.vehicleWarranty ?? "",
+            modeOfPayment: p.modeOfPayment ?? "Cash",
+            leadSource: p.leadSource ?? "",
           })),
         );
       }
@@ -145,6 +155,8 @@ export default function Projects() {
               estimationDate: row.estimation_date || "",
               model: row.model || "",
               amount: row.amount || 0,
+              modeOfPayment: row.mode_of_payment || "Cash",
+              leadSource: row.lead_source || "",
               createdAt: new Date(row.created_at).toLocaleDateString(),
             })) || [];
           setEstimations(rows);
@@ -175,6 +187,8 @@ export default function Projects() {
         estimationDate: estimationForm.estimationDate,
         model: estimationForm.model.trim(),
         amount,
+        modeOfPayment: estimationForm.modeOfPayment,
+        leadSource: estimationForm.leadSource.trim(),
       };
 
       if (editingEstimationId) {
@@ -189,6 +203,8 @@ export default function Projects() {
                 estimation_date: payload.estimationDate,
                 model: payload.model,
                 amount: payload.amount,
+                mode_of_payment: payload.modeOfPayment,
+                lead_source: payload.leadSource,
               })
               .eq("id", editingEstimationId);
             if (error) throw error;
@@ -222,6 +238,8 @@ export default function Projects() {
                   estimation_date: payload.estimationDate,
                   model: payload.model,
                   amount: payload.amount,
+                  mode_of_payment: payload.modeOfPayment,
+                  lead_source: payload.leadSource,
                 },
               ])
               .select();
@@ -294,6 +312,8 @@ export default function Projects() {
       estimationDate: item.estimationDate,
       model: item.model,
       amount: String(item.amount),
+      modeOfPayment: item.modeOfPayment,
+      leadSource: item.leadSource,
     });
   };
 
@@ -320,6 +340,8 @@ export default function Projects() {
         vehicleWarranty: newProject.vehicleWarranty,
         invoiceDate: newProject.invoiceDate,
         amount: newProject.amount,
+        modeOfPayment: newProject.modeOfPayment,
+        leadSource: newProject.leadSource,
         createdAt: new Date().toLocaleDateString(),
       };
 
@@ -349,6 +371,8 @@ export default function Projects() {
                 vehicle_warranty: newProject.vehicleWarranty || null,
                 invoice_date: newProject.invoiceDate,
                 amount: newProject.amount,
+                mode_of_payment: newProject.modeOfPayment,
+                lead_source: newProject.leadSource || null,
               }
             ])
             .select();
@@ -371,6 +395,8 @@ export default function Projects() {
             vehicleWarranty: data[0].vehicle_warranty || "",
             invoiceDate: data[0].invoice_date || "",
             amount: data[0].amount,
+            modeOfPayment: data[0].mode_of_payment || "Cash",
+            leadSource: data[0].lead_source || "",
             createdAt: new Date(data[0].created_at).toLocaleDateString(),
           };
 
@@ -416,6 +442,8 @@ export default function Projects() {
               vehicle_warranty: updatedData.vehicleWarranty || null,
               invoice_date: updatedData.invoiceDate,
               amount: updatedData.amount,
+              mode_of_payment: updatedData.modeOfPayment,
+              lead_source: updatedData.leadSource || null,
             })
             .eq('id', id);
 
@@ -705,6 +733,21 @@ export default function Projects() {
                     onChange={(e) => setEstimationForm((prev) => ({ ...prev, amount: e.target.value }))}
                     required
                   />
+                  <select
+                    className="px-4 py-2 border border-border rounded-lg bg-background"
+                    value={estimationForm.modeOfPayment}
+                    onChange={(e) => setEstimationForm((prev) => ({ ...prev, modeOfPayment: e.target.value }))}
+                  >
+                    <option value="Cash">Cash</option>
+                    <option value="Card">Card</option>
+                    <option value="UPI">UPI</option>
+                  </select>
+                  <input
+                    className="px-4 py-2 border border-border rounded-lg bg-background"
+                    placeholder="Lead Source"
+                    value={estimationForm.leadSource}
+                    onChange={(e) => setEstimationForm((prev) => ({ ...prev, leadSource: e.target.value }))}
+                  />
                   <button
                     type="submit"
                     disabled={isSavingEstimation}
@@ -741,6 +784,8 @@ export default function Projects() {
                           <th className="px-4 py-2 text-left">Date</th>
                           <th className="px-4 py-2 text-left">Model</th>
                           <th className="px-4 py-2 text-right">Amount</th>
+                          <th className="px-4 py-2 text-left">Payment Mode</th>
+                          <th className="px-4 py-2 text-left">Lead Source</th>
                           <th className="px-4 py-2 text-left">Action</th>
                         </tr>
                       </thead>
@@ -753,6 +798,8 @@ export default function Projects() {
                             <td className="px-4 py-2">{est.estimationDate}</td>
                             <td className="px-4 py-2">{est.model}</td>
                             <td className="px-4 py-2 text-right font-semibold">₹{est.amount.toFixed(2)}</td>
+                            <td className="px-4 py-2 text-sm">{est.modeOfPayment}</td>
+                            <td className="px-4 py-2 text-sm">{est.leadSource || "-"}</td>
                             <td className="px-4 py-2">
                               <div className="flex items-center gap-3">
                                 <button
