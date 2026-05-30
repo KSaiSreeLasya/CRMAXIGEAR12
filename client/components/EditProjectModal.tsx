@@ -160,9 +160,7 @@ export default function EditProjectModal({
         const { data, error } = await supabase
           .from("inventory_items")
           .select("chassis_no")
-          .or(
-            `model_no.ilike.%${modelInput}%,vehicle_model.ilike.%${modelInput}%`
-          );
+          .ilike("brand", `%${modelInput}%`);
         if (error) throw error;
         const uniqueChassis = new Set<string>();
         data?.forEach((row: any) => {
@@ -177,8 +175,7 @@ export default function EditProjectModal({
         const uniqueChassis = new Set<string>();
         list.forEach((row: any) => {
           if (
-            ((row.modelNo || "").toLowerCase().includes(modelInput.toLowerCase()) ||
-              (row.vehicleModel || "").toLowerCase().includes(modelInput.toLowerCase())) &&
+            (row.brand || "").toLowerCase().includes(modelInput.toLowerCase()) &&
             row.chassisNo
           ) {
             uniqueChassis.add(row.chassisNo);
@@ -188,7 +185,7 @@ export default function EditProjectModal({
       }
 
       if (chassisNumbers.length === 0) {
-        setModelLookupMessage("No chassis numbers found for this model in inventory.");
+        setModelLookupMessage("No chassis numbers found for this brand in inventory.");
         setAvailableChassisNumbers([]);
         setShowChassisDropdown(false);
         return;
@@ -196,9 +193,9 @@ export default function EditProjectModal({
 
       setAvailableChassisNumbers(chassisNumbers);
       setShowChassisDropdown(true);
-      setModelLookupMessage(`Found ${chassisNumbers.length} chassis number(s) for this model. Please select one.`);
+      setModelLookupMessage(`Found ${chassisNumbers.length} chassis number(s) for this brand. Please select one.`);
     } catch (error) {
-      console.error("Error fetching model details from inventory:", error);
+      console.error("Error fetching brand details from inventory:", error);
       setModelLookupMessage("Failed to fetch chassis numbers.");
       setAvailableChassisNumbers([]);
       setShowChassisDropdown(false);
