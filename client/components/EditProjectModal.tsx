@@ -32,6 +32,8 @@ export default function EditProjectModal({
     vehicleWarranty: "",
     invoiceDate: "",
     amount: "",
+    modeOfPayment: "Cash",
+    leadSource: "",
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -57,12 +59,14 @@ export default function EditProjectModal({
         vehicleWarranty: project.vehicleWarranty || "",
         invoiceDate: project.invoiceDate || "",
         amount: project.amount.toString(),
+        modeOfPayment: project.modeOfPayment || "Cash",
+        leadSource: project.leadSource || "",
       });
     }
   }, [project, isOpen]);
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -134,6 +138,8 @@ export default function EditProjectModal({
       vehicleWarranty: formData.vehicleWarranty,
       invoiceDate: formData.invoiceDate,
       amount: parseFloat(formData.amount),
+      modeOfPayment: formData.modeOfPayment,
+      leadSource: formData.leadSource,
     });
 
     onClose();
@@ -528,6 +534,33 @@ export default function EditProjectModal({
               {errors.amount && (
                 <p className="text-sm text-destructive mt-1">{errors.amount}</p>
               )}
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-semibold mb-2">Mode of Payment</label>
+                <select
+                  name="modeOfPayment"
+                  value={formData.modeOfPayment}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 border border-border rounded-lg bg-background transition-colors focus:outline-none focus:ring-2 focus:ring-primary"
+                >
+                  <option value="Cash">Cash</option>
+                  <option value="Card">Card</option>
+                  <option value="UPI">UPI</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-semibold mb-2">Lead Source</label>
+                <input
+                  type="text"
+                  name="leadSource"
+                  value={formData.leadSource}
+                  onChange={handleChange}
+                  placeholder="e.g. Direct Walk-in, Referral"
+                  className="w-full px-4 py-2 border border-border rounded-lg bg-background transition-colors focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
             </div>
 
             {/* Form Actions */}
