@@ -82,8 +82,7 @@ DROP POLICY IF EXISTS "lead_sources_select_own" ON public.lead_sources;
 CREATE POLICY "lead_sources_select_own" ON public.lead_sources
   FOR SELECT USING (auth.role() = 'authenticated');
 
-DROP POLICY IF EXISTS "lead_sources_insert_own" ON public.lead_sources
-  FOR INSERT WITH CHECK (auth.uid() = user_id OR user_id IS NULL);
+DROP POLICY IF EXISTS "lead_sources_insert_own" ON public.lead_sources;
 CREATE POLICY "lead_sources_insert_own" ON public.lead_sources
   FOR INSERT WITH CHECK (auth.uid() = user_id OR user_id IS NULL);
 
